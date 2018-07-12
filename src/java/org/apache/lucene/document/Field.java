@@ -33,9 +33,9 @@ import org.apache.lucene.search.Hits;             // for javadoc
 public final class Field implements java.io.Serializable {
   private String name = "body";
   private String stringValue = null;
-  private boolean storeTermVector = false;
+  private boolean storeTermVector = false;//是否需要分词后保存分词向量
   private Reader readerValue = null;
-  private boolean isStored = false;
+  private boolean isStored = false;//是否stringValue原始内容,不分词的保存
   private boolean isIndexed = true;
   private boolean isTokenized = true;
 
