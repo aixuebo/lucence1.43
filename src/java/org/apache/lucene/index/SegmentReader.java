@@ -34,6 +34,7 @@ import org.apache.lucene.util.BitVector;
  * FIXME: Describe class <code>SegmentReader</code> here.
  *
  * @version $Id: SegmentReader.java,v 1.23 2004/07/10 06:19:01 otis Exp $
+ 该类用于读取一个Segment的文件
  */
 final class SegmentReader extends IndexReader {
   private String segment;
@@ -112,17 +113,18 @@ final class SegmentReader extends IndexReader {
     tis = new TermInfosReader(cfsDir, segment, fieldInfos);
 
     // NOTE: the bitvector is stored using the regular directory, not cfs
-    if (hasDeletions(si))
-      deletedDocs = new BitVector(directory(), segment + ".del");
+    if (hasDeletions(si)) //说明有删除的文件
+      deletedDocs = new BitVector(directory(), segment + ".del");//读取删除文件,返回删除文件的docid集合对应的bit数组
 
     // make sure that all index files have been read or are kept open
     // so that if an index update removes them we'll still have them
+     //读取词频和位置文件
     freqStream = cfsDir.openFile(segment + ".frq");
     proxStream = cfsDir.openFile(segment + ".prx");
     openNorms(cfsDir);
 
     if (fieldInfos.hasVectors()) { // open term vector files only as needed
-      termVectorsReader = new TermVectorsReader(cfsDir, segment, fieldInfos);
+      termVectorsReader = new TermVectorsReader(cfsDir, segment, fieldInfos);//读取term词集合
     }
   }
 
@@ -164,6 +166,7 @@ final class SegmentReader extends IndexReader {
       cfsReader.close();
   }
 
+  //是否有删除文件
   static final boolean hasDeletions(SegmentInfo si) throws IOException {
     return si.dir.fileExists(si.name + ".del");
   }
@@ -172,7 +175,7 @@ final class SegmentReader extends IndexReader {
     return deletedDocs != null;
   }
 
-
+  //是否是merge文件
   static final boolean usesCompoundFile(SegmentInfo si) throws IOException {
     return si.dir.fileExists(si.name + ".cfs");
   }
@@ -188,6 +191,7 @@ final class SegmentReader extends IndexReader {
     return false;
   }
 
+  //将该文档加入删除文档集合中
   protected final void doDelete(int docNum) throws IOException {
     if (deletedDocs == null)
       deletedDocs = new BitVector(maxDoc());
@@ -202,6 +206,7 @@ final class SegmentReader extends IndexReader {
       undeleteAll = true;
   }
 
+  //获取所有文件集合
   final Vector files() throws IOException {
     Vector files = new Vector(16);
     final String ext[] = new String[]{
@@ -214,7 +219,7 @@ final class SegmentReader extends IndexReader {
         files.addElement(name);
     }
 
-    for (int i = 0; i < fieldInfos.size(); i++) {
+    for (int i = 0; i < fieldInfos.size(); i++) {//获取评分文件
       FieldInfo fi = fieldInfos.fieldInfo(i);
       if (fi.isIndexed)
         files.addElement(segment + ".f" + i);
@@ -222,10 +227,12 @@ final class SegmentReader extends IndexReader {
     return files;
   }
 
+  //返回该segment下所有的分词迭代器
   public final TermEnum terms() throws IOException {
     return tis.terms();
   }
 
+  //返回分词迭代器
   public final TermEnum terms(Term t) throws IOException {
     return tis.terms(t);
   }
@@ -236,7 +243,8 @@ final class SegmentReader extends IndexReader {
               ("attempt to access a deleted document");
     return fieldsReader.doc(n);
   }
-
+ 
+  //是否该文档是删除的文档
   public final synchronized boolean isDeleted(int n) {
     return (deletedDocs != null && deletedDocs.get(n));
   }
