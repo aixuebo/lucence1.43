@@ -39,6 +39,7 @@ class SegmentTermDocs implements TermDocs {
   private long skipPointer;
   private boolean haveSkipped;
 
+  //传入索引的reader对象,可以读取索引的所有信息
   SegmentTermDocs(SegmentReader parent)
           throws IOException {
     this.parent = parent;
