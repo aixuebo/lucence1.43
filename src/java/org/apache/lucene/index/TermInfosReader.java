@@ -115,11 +115,11 @@ final class TermInfosReader {
     return hi;
   }
 
-  //获取第index个索引对应的term在原始tis文件中的位置
+  //通过索引文件定位原始文件
   private final void seekEnum(int indexOffset) throws IOException {
-    getEnum().seek(indexPointers[indexOffset],
-	      (indexOffset * getEnum().indexInterval) - 1,
-	      indexTerms[indexOffset], indexInfos[indexOffset]);
+    getEnum().seek(indexPointers[indexOffset],//原始文件位置
+	      (indexOffset * getEnum().indexInterval) - 1,//该索引是原始文件中第几个term
+	      indexTerms[indexOffset], indexInfos[indexOffset]);//原始文件的term和terminfo内容
   }
 
   /** Returns the TermInfo for a Term in the set, or null. */
@@ -127,10 +127,11 @@ final class TermInfosReader {
     if (size == 0) return null;
 
     // optimize sequential access: first try scanning cached enum w/o seeking
+    //一种优化
     SegmentTermEnum enumerator = getEnum();
     if (enumerator.term() != null                 // term is at or past current
-	&& ((enumerator.prev != null && term.compareTo(enumerator.prev) > 0)
-	    || term.compareTo(enumerator.term()) >= 0)) {
+	&& ((enumerator.prev != null && term.compareTo(enumerator.prev) > 0) //说明该term比前一个term要大
+	    || term.compareTo(enumerator.term()) >= 0)) { //该term比后一个term要大
       int enumOffset = (int)(enumerator.position/enumerator.indexInterval)+1;
       if (indexTerms.length == enumOffset	  // but before end of block
 	  || term.compareTo(indexTerms[enumOffset]) < 0)
@@ -138,8 +139,8 @@ final class TermInfosReader {
     }
 
     // random-access: must seek
-    seekEnum(getIndexOffset(term));
-    return scanEnum(term);
+    seekEnum(getIndexOffset(term));//通过索引文件找到该term最近的原始文件
+    return scanEnum(term);//然后在顺序扫描
   }
 
   /** Scans within block for matching term. 
@@ -185,11 +186,11 @@ final class TermInfosReader {
   final long getPosition(Term term) throws IOException {
     if (size == 0) return -1;
 
-    int indexOffset = getIndexOffset(term);
-    seekEnum(indexOffset);
+    int indexOffset = getIndexOffset(term);//获取该term最近的在索引文件中的序号
+    seekEnum(indexOffset);//通过索引文件定位原始文件
 
     SegmentTermEnum enumerator = getEnum();
-    while(term.compareTo(enumerator.term()) > 0 && enumerator.next()) {}
+    while(term.compareTo(enumerator.term()) > 0 && enumerator.next()) {} //范围已经缩小了,因此可以直接一个个查找
 
     if (term.compareTo(enumerator.term()) == 0)
       return enumerator.position;
