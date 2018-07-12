@@ -98,13 +98,14 @@ final class SegmentTermEnum extends TermEnum implements Cloneable {
     return clone;
   }
 
+  //通过索引文件定位到tis中的一个term
   final void seek(long pointer, int p, Term t, TermInfo ti)
           throws IOException {
-    input.seek(pointer);
-    position = p;
-    term = t;
-    prev = null;
-    termInfo.set(ti);
+    input.seek(pointer);//先定位到tis的文件开始位置pointer
+    position = p;//该位置是第几个term,可以根据索引文件推断出来---索引间隔*第几个索引
+    term = t;//该位置是什么term
+    prev = null;//前一个没办法知道
+    termInfo.set(ti);//该term的info内容
     growBuffer(term.text.length());		  // copy term text into buffer
   }
 
