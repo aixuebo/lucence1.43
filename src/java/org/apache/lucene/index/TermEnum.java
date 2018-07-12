@@ -14,6 +14,7 @@ package org.apache.lucene.index;
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
+ 读取tis或者tii关于term的具体内容,是一个迭代器，每次只代表一个term词
  */
 
 import java.io.IOException;
@@ -24,13 +25,17 @@ import java.io.IOException;
   the enumeration is greater than all that precede it.  */
 
 public abstract class TermEnum {
-  /** Increments the enumeration to the next element.  True if one exists.*/
+  /** Increments the enumeration to the next element.  True if one exists.
+   迭代器读取下一个term
+  */
   public abstract boolean next() throws IOException;
 
   /** Returns the current Term in the enumeration.*/
-  public abstract Term term();
+  public abstract Term term();//具体词内容
 
-  /** Returns the docFreq of the current Term in the enumeration.*/
+  /** Returns the docFreq of the current Term in the enumeration.
+   该term在多少个doc中出现过
+   */
   public abstract int docFreq();
 
   /** Closes the enumeration to further activity, freeing resources. */
@@ -50,6 +55,7 @@ public abstract class TermEnum {
    *   }
    * </pre>
    * Some implementations are considerably more efficient than that.
+   一个一个词term遍历,找到指定的某个term为止
    */
   public boolean skipTo(Term target) throws IOException {
      do {
