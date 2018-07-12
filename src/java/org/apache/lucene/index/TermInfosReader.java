@@ -22,7 +22,11 @@ import org.apache.lucene.store.Directory;
 
 /** This stores a monotonically increasing set of <Term, TermInfo> pairs in a
  * Directory.  Pairs are accessed either by Term or by ordinal position the
- * set.  */
+ * set.  
+ 
+ 通过给我一个term,我可以很快的定位到该term的info信息,即该term在多少个document中存在,以及term内容，词频、词出现的位置
+ 而term本身是由field和text决定的
+ */
 
 final class TermInfosReader {
   private Directory directory;
