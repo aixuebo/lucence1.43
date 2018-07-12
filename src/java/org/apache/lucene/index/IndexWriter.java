@@ -304,10 +304,10 @@ public class IndexWriter {
     DocumentWriter dw =
       new DocumentWriter(ramDirectory, analyzer, similarity, maxFieldLength);
     String segmentName = newSegmentName();
-    dw.addDocument(segmentName, doc);
+    dw.addDocument(segmentName, doc);//我们可以看到每一个doc都在一个segment存在,即每一个doc自动产生全部索引文件
     synchronized (this) {
       segmentInfos.addElement(new SegmentInfo(segmentName, 1, ramDirectory));
-      maybeMergeSegments();
+      maybeMergeSegments();//判断是否要进行merge索引
     }
   }
 
@@ -440,14 +440,16 @@ public class IndexWriter {
     mergeSegments(minSegment);
   }
 
-  /** Incremental segment merger.  */
+  /** Incremental segment merger.  
+   * 判断是否要merge segment
+   */
   private final void maybeMergeSegments() throws IOException {
     long targetMergeDocs = minMergeDocs;
     while (targetMergeDocs <= maxMergeDocs) {
       // find segments smaller than current target size
-      int minSegment = segmentInfos.size();
+      int minSegment = segmentInfos.size();//一共多少个segment
       int mergeDocs = 0;
-      while (--minSegment >= 0) {
+      while (--minSegment >= 0) {//从最后一个segment开始进行merge合并
         SegmentInfo si = segmentInfos.info(minSegment);
         if (si.docCount >= targetMergeDocs)
           break;
@@ -455,7 +457,7 @@ public class IndexWriter {
       }
 
       if (mergeDocs >= targetMergeDocs)		  // found a merge to do
-        mergeSegments(minSegment+1);
+        mergeSegments(minSegment+1);//真正去将最后参数个segment合并成一个
       else
         break;
 
@@ -470,10 +472,10 @@ public class IndexWriter {
     String mergedName = newSegmentName();
     if (infoStream != null) infoStream.print("merging segments");
     SegmentMerger merger =
-        new SegmentMerger(directory, mergedName, useCompoundFile);
+        new SegmentMerger(directory, mergedName, useCompoundFile);//如何merge
 
-    final Vector segmentsToDelete = new Vector();
-    for (int i = minSegment; i < segmentInfos.size(); i++) {
+    final Vector segmentsToDelete = new Vector();//最后因为merge了,原始的segment要被删除掉
+    for (int i = minSegment; i < segmentInfos.size(); i++) {//从segmentInfos队列中获取最后minSegment个segment进行merge
       SegmentInfo si = segmentInfos.info(i);
       if (infoStream != null)
         infoStream.print(" " + si.name + " (" + si.docCount + " docs)");
@@ -484,7 +486,7 @@ public class IndexWriter {
         segmentsToDelete.addElement(reader);   // queue segment for deletion
     }
 
-    int mergedDocCount = merger.merge();
+    int mergedDocCount = merger.merge();//触发真正的merge操作
 
     if (infoStream != null) {
       infoStream.println(" into "+mergedName+" ("+mergedDocCount+" docs)");
@@ -501,7 +503,7 @@ public class IndexWriter {
       new Lock.With(directory.makeLock(IndexWriter.COMMIT_LOCK_NAME), COMMIT_LOCK_TIMEOUT) {
           public Object doBody() throws IOException {
             segmentInfos.write(directory);     // commit before deleting
-            deleteSegments(segmentsToDelete);  // delete now-unused segments
+            deleteSegments(segmentsToDelete);  // delete now-unused segments  删除老的segments数据
             return null;
           }
         }.run();
@@ -522,20 +524,22 @@ public class IndexWriter {
     for (int i = 0; i < segments.size(); i++) {
       SegmentReader reader = (SegmentReader)segments.elementAt(i);
       if (reader.directory() == this.directory)
-	deleteFiles(reader.files(), deletable);	  // try to delete our files
+	deleteFiles(reader.files(), deletable);	  // try to delete our files 如果删除失败了,则将失败的文件存储到deletable集合中
       else
 	deleteFiles(reader.files(), reader.directory()); // delete other files
     }
 
-    writeDeleteableFiles(deletable);		  // note files we can't delete
+    writeDeleteableFiles(deletable);		  // note files we can't delete  保存没有删除成功的文件
   }
 
+	//真正去删除文件
   private final void deleteFiles(Vector files, Directory directory)
        throws IOException {
     for (int i = 0; i < files.size(); i++)
       directory.deleteFile((String)files.elementAt(i));
   }
 
+	//参数deletable 表示删除失败的文件集合
   private final void deleteFiles(Vector files, Vector deletable)
        throws IOException {
     for (int i = 0; i < files.size(); i++) {
@@ -552,12 +556,13 @@ public class IndexWriter {
     }
   }
 
+ //读取上次删除失败的文件--一会要去删除---返回要删除的文件集合
   private final Vector readDeleteableFiles() throws IOException {
     Vector result = new Vector();
-    if (!directory.fileExists("deletable"))
+    if (!directory.fileExists("deletable"))//找到文件
       return result;
 
-    InputStream input = directory.openFile("deletable");
+    InputStream input = directory.openFile("deletable");//读取文件内容
     try {
       for (int i = input.readInt(); i > 0; i--)	  // read file names
         result.addElement(input.readString());
@@ -567,6 +572,7 @@ public class IndexWriter {
     return result;
   }
 
+	//将删除失败的文件写入到某个临时文件下
   private final void writeDeleteableFiles(Vector files) throws IOException {
     OutputStream output = directory.createFile("deleteable.new");
     try {
