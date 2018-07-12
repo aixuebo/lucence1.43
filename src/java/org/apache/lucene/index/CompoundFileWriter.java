@@ -52,13 +52,13 @@ final class CompoundFileWriter {
 
     private static final class FileEntry {
         /** source file */
-        String file;
+        String file;//原始文件路径
 
         /** temporary holder for the start of directory entry for this file */
-        long directoryOffset;
+        long directoryOffset;//原始文件在最终merge上的文件的开始位置---data文件的字节长度、文件路径
 
         /** temporary holder for the start of this file's data section */
-        long dataOffset;
+        long dataOffset;//原始文件在最终merge上的文件开始位置---数据内容
     }
 
 
@@ -140,7 +140,7 @@ final class CompoundFileWriter {
             os = directory.createFile(fileName);
 
             // Write the number of entries
-            os.writeVInt(entries.size());
+            os.writeVInt(entries.size());//写入有多少个文件要被merge
 
             // Write the directory with all offsets at 0.
             // Remember the positions of directory entries so that we can
@@ -148,9 +148,9 @@ final class CompoundFileWriter {
             Iterator it = entries.iterator();
             while(it.hasNext()) {
                 FileEntry fe = (FileEntry) it.next();
-                fe.directoryOffset = os.getFilePointer();
-                os.writeLong(0);    // for now
-                os.writeString(fe.file);
+                fe.directoryOffset = os.getFilePointer();//记录此时该文件的开始位置
+                os.writeLong(0);    // for now 写入文件大小，暂时先是0
+                os.writeString(fe.file);//写入文件路径
             }
 
             // Open the files and copy their data into the stream.
@@ -159,16 +159,16 @@ final class CompoundFileWriter {
             it = entries.iterator();
             while(it.hasNext()) {
                 FileEntry fe = (FileEntry) it.next();
-                fe.dataOffset = os.getFilePointer();
-                copyFile(fe, os, buffer);
+                fe.dataOffset = os.getFilePointer();//记录data写入的位置
+                copyFile(fe, os, buffer);//复制数据到os中
             }
 
             // Write the data offsets into the directory of the compound stream
             it = entries.iterator();
             while(it.hasNext()) {
                 FileEntry fe = (FileEntry) it.next();
-                os.seek(fe.directoryOffset);
-                os.writeLong(fe.dataOffset);
+                os.seek(fe.directoryOffset);//定位到文件的大小位置
+                os.writeLong(fe.dataOffset);//写入文件大小
             }
 
             // Close the output stream. Set the os to null before trying to
@@ -187,20 +187,21 @@ final class CompoundFileWriter {
     /** Copy the contents of the file with specified extension into the
      *  provided output stream. Use the provided buffer for moving data
      *  to reduce memory allocation.
+     复制文件内容到merge输出流os中
      */
     private void copyFile(FileEntry source, OutputStream os, byte buffer[])
     throws IOException
     {
         InputStream is = null;
         try {
-            long startPtr = os.getFilePointer();
+            long startPtr = os.getFilePointer();//先记录此时merge前的位置，用于计算merge了多少个字节
 
-            is = directory.openFile(source.file);
+            is = directory.openFile(source.file);//打开输入源
             long length = is.length();
             long remainder = length;
             int chunk = buffer.length;
 
-            while(remainder > 0) {
+            while(remainder > 0) {//每次写入一个缓冲区数据
                 int len = (int) Math.min(chunk, remainder);
                 is.readBytes(buffer, 0, len);
                 os.writeBytes(buffer, len);
@@ -214,7 +215,7 @@ final class CompoundFileWriter {
                     + " (id: " + source.file + ", length: " + length
                     + ", buffer size: " + chunk + ")");
 
-            // Verify that the output length diff is equal to original file
+            // Verify that the output length diff is equal to original file 校验写入的数据是全都写入成功了
             long endPtr = os.getFilePointer();
             long diff = endPtr - startPtr;
             if (diff != length)
