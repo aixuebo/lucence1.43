@@ -78,38 +78,51 @@ public final class Field implements java.io.Serializable {
 
   /** Constructs a String-valued Field that is not tokenized, but is indexed
     and stored.  Useful for non-text fields, e.g. date or url.  
+    存储 、 索引、不分词
    */
   public static final Field Keyword(String name, String value) {
     return new Field(name, value, true, true, false);
   }
 
   /** Constructs a String-valued Field that is not tokenized nor indexed,
-    but is stored in the index, for return with hits. */
+    but is stored in the index, for return with hits.
+   存储 、不索引、不分词 
+   */
   public static final Field UnIndexed(String name, String value) {
     return new Field(name, value, true, false, false);
   }
 
   /** Constructs a String-valued Field that is tokenized and indexed,
     and is stored in the index, for return with hits.  Useful for short text
-    fields, like "title" or "subject". Term vector will not be stored for this field. */
+    fields, like "title" or "subject". Term vector will not be stored for this field.
+    存储、索引、分词
+    */
   public static final Field Text(String name, String value) {
     return Text(name, value, false);
   }
 
   /** Constructs a Date-valued Field that is not tokenized and is indexed,
-      and stored in the index, for return with hits. */
+      and stored in the index, for return with hits. 
+      存储  索引 不分词
+      */
   public static final Field Keyword(String name, Date value) {
     return new Field(name, DateField.dateToString(value), true, true, false);
   }
 
   /** Constructs a String-valued Field that is tokenized and indexed,
     and is stored in the index, for return with hits.  Useful for short text
+    fields, like "title" or "subject". 
+    存储、索引、分词
+    */
     fields, like "title" or "subject". */
   public static final Field Text(String name, String value, boolean storeTermVector) {
     return new Field(name, value, true, true, true, storeTermVector);
   }
 
   /** Constructs a String-valued Field that is tokenized and indexed,
+    but that is not stored in the index.  Term vector will not be stored for this field.
+    不存储、索引、分词
+    */
     but that is not stored in the index.  Term vector will not be stored for this field. */
   public static final Field UnStored(String name, String value) {
     return UnStored(name, value, false);
