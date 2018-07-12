@@ -36,9 +36,9 @@ final class TermVectorsWriter {
   public static final int FORMAT_SIZE = 4;
   
   //TODO: Figure out how to write with or w/o position information and read back in
-  public static final String TVX_EXTENSION = ".tvx";
-  public static final String TVD_EXTENSION = ".tvd";
-  public static final String TVF_EXTENSION = ".tvf";
+  public static final String TVX_EXTENSION = ".tvx";//存储每一个document的开始在tvd的位置,即可以读取某一个document内容
+  public static final String TVD_EXTENSION = ".tvd";//存储每一个document中的field内容,field的开始位置
+  public static final String TVF_EXTENSION = ".tvf";//存储每一个具体的field的term内容
   private OutputStream tvx = null, tvd = null, tvf = null;
   private Vector fields = null;
   private Vector terms = null;
@@ -58,6 +58,7 @@ final class TermVectorsWriter {
                            FieldInfos fieldInfos)
     throws IOException {
     // Open files for TermVector storage
+   //设置每一个int的版本号
     tvx = directory.createFile(segment + TVX_EXTENSION);
     tvx.writeInt(FORMAT_VERSION);
     tvd = directory.createFile(segment + TVD_EXTENSION);
@@ -66,8 +67,8 @@ final class TermVectorsWriter {
     tvf.writeInt(FORMAT_VERSION);
 
     this.fieldInfos = fieldInfos;
-    fields = new Vector(fieldInfos.size());
-    terms = new Vector();
+    fields = new Vector(fieldInfos.size());//存储所有的属性集合
+    terms = new Vector();//存储某一个field的词向量集合
   }
 
 
@@ -145,7 +146,7 @@ final class TermVectorsWriter {
   }
 
   private final void addTermInternal(String termText, int freq) {
-    currentField.length += freq;
+    currentField.length += freq;//记录总共出现多少个词，不过滤重复，比如一共该属性中有5个不同的词，但是总出现次数是10,则该值最终是10
     TVTerm term = new TVTerm();
     term.termText = termText;
     term.freq = freq;
@@ -221,26 +222,28 @@ final class TermVectorsWriter {
   }
 
   
-
+  //针对一个field内容输出
   private void writeField() throws IOException {
     // remember where this field is written
-    currentField.tvfPointer = tvf.getFilePointer();
+    currentField.tvfPointer = tvf.getFilePointer();//记录此时写入词内容文件的开始位置
     //System.out.println("Field Pointer: " + currentField.tvfPointer);
     final int size;
 
-    tvf.writeVInt(size = terms.size());
-    tvf.writeVInt(currentField.length - size);
+    tvf.writeVInt(size = terms.size());//记录该field有多少个词
+    tvf.writeVInt(currentField.length - size);//该值+size 等于总field出现的词数量，后期没有用到该值
     String lastTermText = "";
     // write term ids and positions
-    for (int i = 0; i < size; i++) {
-      TVTerm term = (TVTerm) terms.elementAt(i);
+    for (int i = 0; i < size; i++) {//循环每一个不同的词
+      TVTerm term = (TVTerm) terms.elementAt(i);//获取词本身
       //tvf.writeString(term.termText);
-      int start = StringHelper.stringDifference(lastTermText, term.termText);
-      int length = term.termText.length() - start;
-      tvf.writeVInt(start);			  // write shared prefix length
-      tvf.writeVInt(length);			  // write delta length
-      tvf.writeChars(term.termText, start, length);  // write delta chars
-      tvf.writeVInt(term.freq);
+      int start = StringHelper.stringDifference(lastTermText, term.termText);//输出词公用前一个词多少个字节
+      int length = term.termText.length() - start;//剩余要存储该次多少个字节
+      tvf.writeVInt(start);			  // write shared prefix length 记录使用前一个词多少个字节
+      tvf.writeVInt(length);			  // write delta length 记录还要存储多少个字节
+      tvf.writeChars(term.termText, start, length);  // write delta chars  还要存储的字节内容
+     //因此原始词内容 = 比如前一个词=abcde 后一个词=abed  则start=2 length = 2 因此原词=前一个词缓冲池abcde的c位置开始覆盖，覆盖ed
+     //得到的新字符串是abede,而最终只需要start+length个位置,因此就是只要abed内容即可还原
+      tvf.writeVInt(term.freq);//存储词频
       lastTermText = term.termText;
     }
   }
@@ -252,19 +255,19 @@ final class TermVectorsWriter {
     if (isFieldOpen()) throw new IllegalStateException("Field is still open while writing document");
     //System.out.println("Writing doc pointer: " + currentDocPointer);
     // write document index record
-    tvx.writeLong(currentDocPointer);
+    tvx.writeLong(currentDocPointer);//记录document的开始位置
 
     // write document data record
     final int size;
 
     // write the number of fields
-    tvd.writeVInt(size = fields.size());
+    tvd.writeVInt(size = fields.size());//记录该document中有多少个属性
 
     // write field numbers
     int lastFieldNumber = 0;
     for (int i = 0; i < size; i++) {
-      TVField field = (TVField) fields.elementAt(i);
-      tvd.writeVInt(field.number - lastFieldNumber);
+      TVField field = (TVField) fields.elementAt(i);//记录每一个属性内容
+      tvd.writeVInt(field.number - lastFieldNumber);//记录属性的序号，每一个document都是从0开始计数的
 
       lastFieldNumber = field.number;
     }
@@ -273,7 +276,7 @@ final class TermVectorsWriter {
     long lastFieldPointer = 0;
     for (int i = 0; i < size; i++) {
       TVField field = (TVField) fields.elementAt(i);
-      tvd.writeVLong(field.tvfPointer - lastFieldPointer);
+      tvd.writeVLong(field.tvfPointer - lastFieldPointer);//每一个属性写入term的开始位置
 
       lastFieldPointer = field.tvfPointer;
     }
@@ -282,9 +285,9 @@ final class TermVectorsWriter {
 
 
   private static class TVField {
-    int number;
-    long tvfPointer = 0;
-    int length = 0;   // number of distinct term positions
+    int number;//该属性的序号，一个document从0开始计数
+    long tvfPointer = 0;//该属性在tvf文件的开始位置
+    int length = 0;   // number of distinct term positions  记录总共出现多少个词，不过滤重复，比如一共该属性中有5个不同的词，但是总出现次数是10,则该值最终是10
 
     TVField(int number) {
       this.number = number;
@@ -292,8 +295,8 @@ final class TermVectorsWriter {
   }
 
   private static class TVTerm {
-    String termText;
-    int freq = 0;
+    String termText;//具体词内容
+    int freq = 0;//词频
     //int positions[] = null;
   }
 
