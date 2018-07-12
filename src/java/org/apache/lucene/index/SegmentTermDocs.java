@@ -23,11 +23,11 @@ import org.apache.lucene.store.InputStream;
 class SegmentTermDocs implements TermDocs {
   protected SegmentReader parent;
   private InputStream freqStream;
-  private int count;
-  private int df;
-  private BitVector deletedDocs;
-  int doc = 0;
-  int freq;
+  private int count;//目前处理到第几个文档了
+  private int df;//该term出现在多少文档中
+  private BitVector deletedDocs;//删除的文档集合
+  int doc = 0;//此时处理的文档documentid
+  int freq;//该term在该document的field出现的词频
 
   private int skipInterval;
   private int numSkips;
@@ -65,12 +65,13 @@ class SegmentTermDocs implements TermDocs {
     seek(ti);
   }
 
+  //重新检索该term
   void seek(TermInfo ti) throws IOException {
-    count = 0;
+    count = 0;//重新设置一个term,因此出现的文档数量为0
     if (ti == null) {
       df = 0;
     } else {
-      df = ti.docFreq;
+      df = ti.docFreq;//term出现在多少个文档中
       doc = 0;
       skipDoc = 0;
       skipCount = 0;
@@ -78,7 +79,7 @@ class SegmentTermDocs implements TermDocs {
       freqPointer = ti.freqPointer;
       proxPointer = ti.proxPointer;
       skipPointer = freqPointer + ti.skipOffset;
-      freqStream.seek(freqPointer);
+      freqStream.seek(freqPointer);//设置该文档对应的词频位置
       haveSkipped = false;
     }
   }
@@ -89,27 +90,29 @@ class SegmentTermDocs implements TermDocs {
       skipStream.close();
   }
 
+  //此时处理的文档id以及词频
   public final int doc() { return doc; }
   public final int freq() { return freq; }
 
   protected void skippingDoc() throws IOException {
   }
 
+  //找到该term的下一个文档
   public boolean next() throws IOException {
     while (true) {
       if (count == df)
         return false;
 
       int docCode = freqStream.readVInt();
-      doc += docCode >>> 1;			  // shift off low bit
-      if ((docCode & 1) != 0)			  // if low bit is set
+      doc += docCode >>> 1;			  // shift off low bit 文档号码
+      if ((docCode & 1) != 0)			  // if low bit is set 该文档词频
         freq = 1;				  // freq is one
       else
-        freq = freqStream.readVInt();		  // else read freq
+        freq = freqStream.readVInt();		  // else read freq 该文档词频
 
-      count++;
+      count++;//该term出现的文档次数累加1
 
-      if (deletedDocs == null || !deletedDocs.get(doc))
+      if (deletedDocs == null || !deletedDocs.get(doc)) //说明该doc不是删除的,因此说明找到该文档了，则退出
         break;
       skippingDoc();
     }
