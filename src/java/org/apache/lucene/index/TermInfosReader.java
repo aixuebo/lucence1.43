@@ -30,8 +30,8 @@ final class TermInfosReader {
   private FieldInfos fieldInfos;
 
   private ThreadLocal enumerators = new ThreadLocal();
-  private SegmentTermEnum origEnum;
-  private long size;
+  private SegmentTermEnum origEnum;//原始tis的term内容的迭代器
+  private long size;//tis文件中总term数量
 
   TermInfosReader(Directory dir, String seg, FieldInfos fis)
        throws IOException {
@@ -39,6 +39,7 @@ final class TermInfosReader {
     segment = seg;
     fieldInfos = fis;
 
+    //term在tis或者tii中的term迭代器
     origEnum = new SegmentTermEnum(directory.openFile(segment + ".tis"),
                                    fieldInfos, false);
     size = origEnum.size;
@@ -68,10 +69,11 @@ final class TermInfosReader {
     return termEnum;
   }
 
-  Term[] indexTerms = null;
-  TermInfo[] indexInfos;
-  long[] indexPointers;
+  Term[] indexTerms = null;//索引中所有的term
+  TermInfo[] indexInfos;//每一个索引中term的info对象
+  long[] indexPointers;//每一个索引对一个tis的文件位置
 
+  //初始化索引tii文件内容
   private final void readIndex() throws IOException {
     SegmentTermEnum indexEnum =
       new SegmentTermEnum(directory.openFile(segment + ".tii"),
@@ -93,7 +95,9 @@ final class TermInfosReader {
     }
   }
 
-  /** Returns the offset of the greatest index entry which is less than or equal to term.*/
+  /** Returns the offset of the greatest index entry which is less than or equal to term.
+   找到距离该term最近的索引term
+   */
   private final int getIndexOffset(Term term) throws IOException {
     int lo = 0;					  // binary search indexTerms[]
     int hi = indexTerms.length - 1;
@@ -111,6 +115,7 @@ final class TermInfosReader {
     return hi;
   }
 
+  //获取第index个索引对应的term在原始tis文件中的位置
   private final void seekEnum(int indexOffset) throws IOException {
     getEnum().seek(indexPointers[indexOffset],
 	      (indexOffset * getEnum().indexInterval) - 1,
@@ -137,12 +142,15 @@ final class TermInfosReader {
     return scanEnum(term);
   }
 
-  /** Scans within block for matching term. */
+  /** Scans within block for matching term. 
+   查询tis文件,没有走索引,所以很慢
+   找到一个term对应的info内容
+  */
   private final TermInfo scanEnum(Term term) throws IOException {
     SegmentTermEnum enumerator = getEnum();
-    while (term.compareTo(enumerator.term()) > 0 && enumerator.next()) {}
-    if (enumerator.term() != null && term.compareTo(enumerator.term()) == 0)
-      return enumerator.termInfo();
+    while (term.compareTo(enumerator.term()) > 0 && enumerator.next()) {} //只要term参数比字典中term大,都一个个pass过掉
+    if (enumerator.term() != null && term.compareTo(enumerator.term()) == 0) //说明找到该term了
+      return enumerator.termInfo();//返回该term的info对象
     else
       return null;
   }
@@ -154,23 +162,26 @@ final class TermInfosReader {
     SegmentTermEnum enumerator = getEnum();
     if (enumerator != null && enumerator.term() != null &&
         position >= enumerator.position &&
-	position < (enumerator.position + enumerator.indexInterval))
+	position < (enumerator.position + enumerator.indexInterval)) //说明在一个小范围内,可以一个个迭代查找
       return scanEnum(position);		  // can avoid seek
 
     seekEnum(position / enumerator.indexInterval); // must seek
     return scanEnum(position);
   }
 
+  //从指定为止开始一个个查找term
   private final Term scanEnum(int position) throws IOException {
     SegmentTermEnum enumerator = getEnum();
-    while(enumerator.position < position)
+    while(enumerator.position < position)//不断的一个个查找term,指导找到为止
       if (!enumerator.next())
 	return null;
 
     return enumerator.term();
   }
 
-  /** Returns the position of a Term in the set or -1. */
+  /** Returns the position of a Term in the set or -1. 
+   获取该term的内部排序序号
+   */
   final long getPosition(Term term) throws IOException {
     if (size == 0) return -1;
 
