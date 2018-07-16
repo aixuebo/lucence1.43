@@ -113,7 +113,6 @@ public final class Field implements java.io.Serializable {
     and is stored in the index, for return with hits.  Useful for short text
     fields, like "title" or "subject". 
     存储、索引、分词
-    */
     fields, like "title" or "subject". */
   public static final Field Text(String name, String value, boolean storeTermVector) {
     return new Field(name, value, true, true, true, storeTermVector);
@@ -122,7 +121,6 @@ public final class Field implements java.io.Serializable {
   /** Constructs a String-valued Field that is tokenized and indexed,
     but that is not stored in the index.  Term vector will not be stored for this field.
     不存储、索引、分词
-    */
     but that is not stored in the index.  Term vector will not be stored for this field. */
   public static final Field UnStored(String name, String value) {
     return UnStored(name, value, false);
