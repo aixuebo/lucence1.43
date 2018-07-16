@@ -18,6 +18,7 @@ package org.apache.lucene.index;
 
 import java.io.IOException;
 
+//该对象表示一个segment对象的信息,用于多个segment进行merge操作
 final class SegmentMergeInfo {
   Term term;//最上面的term
   int base;//该segment的docId的第一个序号,保证所有segment的序号都不重复,并且连贯

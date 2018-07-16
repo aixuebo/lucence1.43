@@ -22,7 +22,9 @@ import java.io.IOException;
 /** Abstract class for enumerating terms.
 
   <p>Term enumerations are always ordered by Term.compareTo().  Each term in
-  the enumeration is greater than all that precede it.  */
+  the enumeration is greater than all that precede it.  
+  可以快速找到一个term,即是一个segment中的term的遍历器
+  */
 
 public abstract class TermEnum {
   /** Increments the enumeration to the next element.  True if one exists.

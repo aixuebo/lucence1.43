@@ -20,6 +20,7 @@ package org.apache.lucene.index;
 import java.io.IOException;
 import org.apache.lucene.store.InputStream;
 
+//便利每一term文件
 final class SegmentTermEnum extends TermEnum implements Cloneable {
   private InputStream input;
   FieldInfos fieldInfos;
@@ -32,7 +33,7 @@ final class SegmentTermEnum extends TermEnum implements Cloneable {
   private int format;
   private boolean isIndex = false;//是否是索引文件
   long indexPointer = 0;//索引tii文件要获取tis的文件位置
-  int indexInterval;
+  int indexInterval;//索引文件间隔
   int skipInterval;
   
   private int formatM1SkipInterval;
@@ -66,7 +67,7 @@ final class SegmentTermEnum extends TermEnum implements Cloneable {
       if (format < TermInfosWriter.FORMAT)
         throw new IOException("Unknown format version:" + format);
 
-      size = input.readLong();                    // read the size
+      size = input.readLong();                    // read the size  该segment中包含多少个term,即所有field-term元祖的集合
       
       if(format == -1){
         if (!isIndex) {
@@ -119,7 +120,7 @@ final class SegmentTermEnum extends TermEnum implements Cloneable {
     }
 
     prev = term;//获取前一个term
-    term = readTerm();//获取当前term
+    term = readTerm();//获取当前term---还原term信息
 
     termInfo.docFreq = input.readVInt();	  // read doc freq 该term出现在多少个document中
     termInfo.freqPointer += input.readVLong();	  // read freq pointer 该term词频文件的位置
@@ -135,7 +136,7 @@ final class SegmentTermEnum extends TermEnum implements Cloneable {
       }
     }
     else{
-      if (termInfo.docFreq >= skipInterval) 
+      if (termInfo.docFreq >= skipInterval) //说明有跳跃
         termInfo.skipOffset = input.readVInt();//该值暂时没看到实际用的地方,因此暂时不了解
     }
     
@@ -154,8 +155,8 @@ final class SegmentTermEnum extends TermEnum implements Cloneable {
       growBuffer(totalLength);
 
     input.readChars(buffer, start, length);//读取term剩余字节到buffer中
-    return new Term(fieldInfos.fieldName(input.readVInt()),
-            new String(buffer, 0, totalLength), false);//获取该term的field以及词内容
+    return new Term(fieldInfos.fieldName(input.readVInt()),//该term所在的field
+            new String(buffer, 0, totalLength), false);//获取该term的词内容
   }
 
   private final void growBuffer(int length) {

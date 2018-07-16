@@ -18,9 +18,10 @@ package org.apache.lucene.index;
 
 import org.apache.lucene.store.Directory;
 
+//记录一个段落,里面有若干个doc文档集合的汇总
 final class SegmentInfo {
   public String name;				  // unique name in dir
-  public int docCount;				  // number of docs in seg
+  public int docCount;				  // number of docs in seg  有多少个文档在这个段里面
   public Directory dir;				  // where segment resides
 
   public SegmentInfo(String name, int docCount, Directory dir) {

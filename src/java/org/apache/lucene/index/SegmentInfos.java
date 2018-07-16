@@ -22,13 +22,14 @@ import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.InputStream;
 import org.apache.lucene.store.OutputStream;
 
+//描述一个索引中所有的segment集合---包括下一个segment的id序号、每一个segment的name和包含的doc个数
 final class SegmentInfos extends Vector {
   
   /** The file format version, a negative number. */
   /* Works since counter, the old 1st entry, is always >= 0 */
   public static final int FORMAT = -1;
   
-  public int counter = 0;    // used to name new segments
+  public int counter = 0;    // used to name new segments 下一次segment的序号,其实完全可以使用size去确定,但是他记录了一个也还可以
   private long version = 0; //counts how often the index has been changed by adding or deleting docs
 
   public final SegmentInfo info(int i) {
@@ -75,11 +76,11 @@ final class SegmentInfos extends Vector {
       output.writeInt(FORMAT); // write FORMAT
       output.writeLong(++version); // every write changes the index
       output.writeInt(counter); // write counter
-      output.writeInt(size()); // write infos
+      output.writeInt(size()); // write infos 有多少个segment
       for (int i = 0; i < size(); i++) {
         SegmentInfo si = info(i);
-        output.writeString(si.name);
-        output.writeInt(si.docCount);
+        output.writeString(si.name);//segment的name
+        output.writeInt(si.docCount);//segment中有多少个文档
       }         
     }
     finally {

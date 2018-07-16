@@ -35,6 +35,7 @@ public interface TermPositions
 	without calling {@link #next()}<p> This is
 	invalid until {@link #next()} is called for
 	the first time.
+	返回在该doc中每一个term出现的位置
     */
     int nextPosition() throws IOException;
 }

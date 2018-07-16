@@ -20,6 +20,7 @@ import java.io.IOException;
 import org.apache.lucene.util.BitVector;
 import org.apache.lucene.store.InputStream;
 
+//描述一个term在所有document维度下的情况
 class SegmentTermDocs implements TermDocs {
   protected SegmentReader parent;
   private InputStream freqStream;
@@ -30,13 +31,13 @@ class SegmentTermDocs implements TermDocs {
   int freq;//该term在该document的field出现的词频
 
   private int skipInterval;
-  private int numSkips;
+  private int numSkips;//最多有多少层跳跃表
   private int skipCount;
   private InputStream skipStream;
   private int skipDoc;
   private long freqPointer;
   private long proxPointer;
-  private long skipPointer;
+  private long skipPointer;//返回跳跃表开始的位置
   private boolean haveSkipped;
 
   //传入索引的reader对象,可以读取索引的所有信息
@@ -75,10 +76,10 @@ class SegmentTermDocs implements TermDocs {
       doc = 0;
       skipDoc = 0;
       skipCount = 0;
-      numSkips = df / skipInterval;
+      numSkips = df / skipInterval;//最多有多少层跳跃表
       freqPointer = ti.freqPointer;
       proxPointer = ti.proxPointer;
-      skipPointer = freqPointer + ti.skipOffset;
+      skipPointer = freqPointer + ti.skipOffset;//返回跳跃表开始的位置
       freqStream.seek(freqPointer);//设置该文档对应的词频位置
       haveSkipped = false;
     }
@@ -97,7 +98,7 @@ class SegmentTermDocs implements TermDocs {
   protected void skippingDoc() throws IOException {
   }
 
-  //找到该term的下一个文档
+  //找到该term的下一个文档的词频、docid等信息
   public boolean next() throws IOException {
     while (true) {
       if (count == df)
@@ -119,15 +120,18 @@ class SegmentTermDocs implements TermDocs {
     return true;
   }
 
-  /** Optimized implementation. */
+  /** Optimized implementation.
+   * 一次性多读取一些内容,将读取的内容存储到参数的数组中
+   * 返回接下来每一个属于该term的docid集合,以及每一个doc中该term出现的词频
+   **/
   public int read(final int[] docs, final int[] freqs)
           throws IOException {
     final int length = docs.length;
     int i = 0;
-    while (i < length && count < df) {
+    while (i < length && count < df) {//只要没有超过总doc文档数,就一直循环
 
       // manually inlined call to next() for speed
-      final int docCode = freqStream.readVInt();
+      final int docCode = freqStream.readVInt();//获取词频 以及文档id
       doc += docCode >>> 1;			  // shift off low bit
       if ((docCode & 1) != 0)			  // if low bit is set
         freq = 1;				  // freq is one
@@ -135,8 +139,8 @@ class SegmentTermDocs implements TermDocs {
         freq = freqStream.readVInt();		  // else read freq
       count++;
 
-      if (deletedDocs == null || !deletedDocs.get(doc)) {
-        docs[i] = doc;
+      if (deletedDocs == null || !deletedDocs.get(doc)) {//说明该doc没有被删除
+        docs[i] = doc;//read的值附加到参数集合中
         freqs[i] = freq;
         ++i;
       }
@@ -144,7 +148,9 @@ class SegmentTermDocs implements TermDocs {
     return i;
   }
 
-  /** Overridden by SegmentTermPositions to skip in prox stream. */
+  /** Overridden by SegmentTermPositions to skip in prox stream. 
+   * 跳跃到位置文件的制定位置
+   **/
   protected void skipProx(long proxPointer) throws IOException {}
 
   /** Optimized implementation. */
@@ -155,7 +161,7 @@ class SegmentTermDocs implements TermDocs {
         skipStream = (InputStream) freqStream.clone(); // lazily clone
 
       if (!haveSkipped) {                          // lazily seek skip stream
-        skipStream.seek(skipPointer);
+        skipStream.seek(skipPointer);//设置到跳跃表位置
         haveSkipped = true;
       }
 
@@ -166,6 +172,7 @@ class SegmentTermDocs implements TermDocs {
       int numSkipped = -1 - (count % skipInterval);
 
       while (target > skipDoc) {
+    	  //更新last等信息,说明跳跃表有作用了
         lastSkipDoc = skipDoc;
         lastFreqPointer = freqPointer;
         lastProxPointer = proxPointer;
@@ -173,20 +180,22 @@ class SegmentTermDocs implements TermDocs {
         if (skipDoc != 0 && skipDoc >= doc)
           numSkipped += skipInterval;
         
-        if(skipCount >= numSkips)
+        if(skipCount >= numSkips) //说明已经到跳跃表最后了
           break;
 
-        skipDoc += skipStream.readVInt();
-        freqPointer += skipStream.readVInt();
-        proxPointer += skipStream.readVInt();
+        //本次的位置 是为了lastFreqPointer等服务的
+        skipDoc += skipStream.readVInt();//跳跃表的docid
+        freqPointer += skipStream.readVInt();//docid所在的词频文件位置
+        proxPointer += skipStream.readVInt();//docid所在的位置文件位置
 
-        skipCount++;
+        skipCount++;//跳跃表的数量
       }
+      //获取最后一个last位置,从该位置开始往后面依次读取数据
       
       // if we found something to skip, then skip it
       if (lastFreqPointer > freqStream.getFilePointer()) {
-        freqStream.seek(lastFreqPointer);
-        skipProx(lastProxPointer);
+        freqStream.seek(lastFreqPointer);//跳跃到词频文件的制定位置
+        skipProx(lastProxPointer);//跳跃到位置文件的指定位置
 
         doc = lastSkipDoc;
         count += numSkipped;
@@ -196,7 +205,7 @@ class SegmentTermDocs implements TermDocs {
 
     // done skipping, now just scan
     do {
-      if (!next())
+      if (!next())//接下来读取下一个doc
         return false;
     } while (target > doc);
     return true;

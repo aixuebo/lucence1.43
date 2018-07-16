@@ -17,14 +17,14 @@ package org.apache.lucene.index;
  */
 
 /** A TermInfo is the record of information stored for a term.*/
-
+//一个term的元祖内容<存在多少个doc文件中、词频、位置>
 final class TermInfo {
   /** The number of documents which contain the term. */
   int docFreq = 0;
 
   long freqPointer = 0;
   long proxPointer = 0;
-  int skipOffset;
+  int skipOffset;//跳跃表开始位置的偏移量,可以得到跳跃表内容
 
   TermInfo() {}
 

@@ -27,9 +27,9 @@ final class SegmentMergeQueue extends PriorityQueue {
   protected final boolean lessThan(Object a, Object b) {
     SegmentMergeInfo stiA = (SegmentMergeInfo)a;
     SegmentMergeInfo stiB = (SegmentMergeInfo)b;
-    int comparison = stiA.term.compareTo(stiB.term);
+    int comparison = stiA.term.compareTo(stiB.term);//按照term的field和text排序
     if (comparison == 0)
-      return stiA.base < stiB.base; 
+      return stiA.base < stiB.base; //然后按照文档docid排序
     else
       return comparison < 0;
   }

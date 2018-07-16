@@ -278,18 +278,18 @@ final class SegmentMerger {
 
     while (queue.size() > 0) {
       int matchSize = 0;			  // pop matching terms
-      match[matchSize++] = (SegmentMergeInfo) queue.pop();
+      match[matchSize++] = (SegmentMergeInfo) queue.pop();//弹出第一个最小的term
       Term term = match[0].term;
       SegmentMergeInfo top = (SegmentMergeInfo) queue.top();
 
-      while (top != null && term.compareTo(top.term) == 0) {
+      while (top != null && term.compareTo(top.term) == 0) {//从别的队列找到和最小term属于一个term的词
         match[matchSize++] = (SegmentMergeInfo) queue.pop();
         top = (SegmentMergeInfo) queue.top();
       }
 
-      mergeTermInfo(match, matchSize);		  // add new TermInfo
+      mergeTermInfo(match, matchSize);		  // add new TermInfo  相同的term进行merge
 
-      while (matchSize > 0) {
+      while (matchSize > 0) {//在将队列添加进去
         SegmentMergeInfo smi = match[--matchSize];
         if (smi.next())
           queue.put(smi);			  // restore queue
@@ -313,55 +313,56 @@ final class SegmentMerger {
     long freqPointer = freqOutput.getFilePointer();
     long proxPointer = proxOutput.getFilePointer();
 
-    int df = appendPostings(smis, n);		  // append posting data
+    int df = appendPostings(smis, n);		  // append posting data 表示追加了多少个doc,即该term存在于多少个doc中
 
-    long skipPointer = writeSkip();
+    long skipPointer = writeSkip();//返回跳跃表的内容的开始位置
 
     if (df > 0) {
       // add an entry to the dictionary with pointers to prox and freq files
-      termInfo.set(df, freqPointer, proxPointer, (int) (skipPointer - freqPointer));
-      termInfosWriter.add(smis[0].term, termInfo);
+      termInfo.set(df, freqPointer, proxPointer, (int) (skipPointer - freqPointer));//将term的信息写入到输出流中
+      termInfosWriter.add(smis[0].term, termInfo);//存储该term 以及该term对应的info信息
     }
   }
 
   /** Process postings from multiple segments all positioned on the
    *  same term. Writes out merged entries into freqOutput and
    *  the proxOutput streams.
-   *
+   *  处理该term的倒排索引内容,该索引是来自于多个segment的位置进行合并---将倒排索引的词频以及位置写入到输出流中
    * @param smis array of segments
    * @param n number of cells in the array actually occupied
-   * @return number of documents across all segments where this term was found
+   * @return number of documents across all segments where this term was found 返回相同term在多少个doc中出现过
    */
   private final int appendPostings(SegmentMergeInfo[] smis, int n)
           throws IOException {
     int lastDoc = 0;
-    int df = 0;					  // number of docs w/ term
+    int df = 0;					  // number of docs w/ term  出现在多少个doc中
     resetSkip();
     for (int i = 0; i < n; i++) {
       SegmentMergeInfo smi = smis[i];
-      TermPositions postings = smi.postings;
+      TermPositions postings = smi.postings;//每一个term出现的位置
       int base = smi.base;
       int[] docMap = smi.docMap;
-      postings.seek(smi.termEnum);
-      while (postings.next()) {
+      postings.seek(smi.termEnum);//定位到该term
+      while (postings.next()) {//返回该term出现在该doc中的位置
         int doc = postings.doc();
         if (docMap != null)
-          doc = docMap[doc];                      // map around deletions
-        doc += base;                              // convert to merged space
+          doc = docMap[doc];                      // map around deletions 返回该doc在该segment的序号
+        doc += base;                              // convert to merged space  返回merge后的序号
 
         if (doc < lastDoc)
           throw new IllegalStateException("docs out of order");
 
-        df++;
+        df++;//说明doc累加1
 
-        if ((df % skipInterval) == 0) {
+        if ((df % skipInterval) == 0) {//设置一个跳跃位
           bufferSkip(lastDoc);
         }
 
-        int docCode = (doc - lastDoc) << 1;	  // use low bit to flag freq=1
+        int docCode = (doc - lastDoc) << 1;	  // use low bit to flag freq=1  该docid
         lastDoc = doc;
 
-        int freq = postings.freq();
+        int freq = postings.freq();//词频
+        //记录每一个docid以及词频
         if (freq == 1) {
           freqOutput.writeVInt(docCode | 1);	  // write doc & freq=1
         } else {
@@ -369,6 +370,7 @@ final class SegmentMerger {
           freqOutput.writeVInt(freq);		  // write frequency in doc
         }
 
+        //记录每一个term出现的位置
         int lastPosition = 0;			  // write position deltas
         for (int j = 0; j < freq; j++) {
           int position = postings.nextPosition();
@@ -392,11 +394,12 @@ final class SegmentMerger {
     lastSkipProxPointer = proxOutput.getFilePointer();
   }
 
+  //记录每一次跳跃表所在的内容---docid、词频文件位置、词频位置内容
   private void bufferSkip(int doc) throws IOException {
-    long freqPointer = freqOutput.getFilePointer();
-    long proxPointer = proxOutput.getFilePointer();
+    long freqPointer = freqOutput.getFilePointer();//获取此时的词频以及docid内容
+    long proxPointer = proxOutput.getFilePointer();//获取词位置内容
 
-    skipBuffer.writeVInt(doc - lastSkipDoc);
+    skipBuffer.writeVInt(doc - lastSkipDoc);//存储docid
     skipBuffer.writeVInt((int) (freqPointer - lastSkipFreqPointer));
     skipBuffer.writeVInt((int) (proxPointer - lastSkipProxPointer));
 
@@ -407,7 +410,7 @@ final class SegmentMerger {
 
   private long writeSkip() throws IOException {
     long skipPointer = freqOutput.getFilePointer();
-    skipBuffer.writeTo(freqOutput);
+    skipBuffer.writeTo(freqOutput);//将跳跃表内容输出到词频文件中
     return skipPointer;
   }
 

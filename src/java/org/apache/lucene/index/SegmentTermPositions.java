@@ -22,9 +22,9 @@ import org.apache.lucene.store.InputStream;
 
 final class SegmentTermPositions
 extends SegmentTermDocs implements TermPositions {
-  private InputStream proxStream;
-  private int proxCount;
-  private int position;
+  private InputStream proxStream;//位置文件对象
+  private int proxCount;//为一个document中的词频
+  private int position;//记录每一个term在该document中的词位置
   
   SegmentTermPositions(SegmentReader p) throws IOException {
     super(p);
@@ -34,7 +34,7 @@ extends SegmentTermDocs implements TermPositions {
   final void seek(TermInfo ti) throws IOException {
     super.seek(ti);
     if (ti != null)
-      proxStream.seek(ti.proxPointer);
+      proxStream.seek(ti.proxPointer);//定位到该term对应的位置
     proxCount = 0;
   }
 
@@ -44,22 +44,24 @@ extends SegmentTermDocs implements TermPositions {
   }
 
   public final int nextPosition() throws IOException {
-    proxCount--;
-    return position += proxStream.readVInt();
+    proxCount--;//减少一个词
+    return position += proxStream.readVInt();//获取该term出现的位置
   }
 
+  //跳过该document的所有词频
   protected final void skippingDoc() throws IOException {
     for (int f = freq; f > 0; f--)		  // skip all positions
       proxStream.readVInt();
   }
 
+  //还下一个词
   public final boolean next() throws IOException {
     for (int f = proxCount; f > 0; f--)		  // skip unread positions
-      proxStream.readVInt();
+      proxStream.readVInt();//如果还有词频，则都让他的位置过滤掉
 
-    if (super.next()) {				  // run super
-      proxCount = freq;				  // note frequency
-      position = 0;				  // reset position
+    if (super.next()) {				  // run super 换到下一个document
+      proxCount = freq;				  // note frequency 获取词频
+      position = 0;				  // reset position 记录出现的位置
       return true;
     }
     return false;
@@ -71,7 +73,7 @@ extends SegmentTermDocs implements TermPositions {
   }
 
 
-  /** Called by super.skipTo(). */
+  /** Called by super.skipTo(). 跳跃到某一个新的term上*/
   protected void skipProx(long proxPointer) throws IOException {
     proxStream.seek(proxPointer);
     proxCount = 0;

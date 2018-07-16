@@ -30,6 +30,7 @@ import java.io.IOException;
 public interface TermDocs {
   /** Sets this to the data for a term.
    * The enumeration is reset to the start of the data for this term.
+   * 定位到一个term下
    */
   void seek(Term term) throws IOException;
 
@@ -39,15 +40,21 @@ public interface TermDocs {
   void seek(TermEnum termEnum) throws IOException;
 
   /** Returns the current document number.  <p> This is invalid until {@link
-   #next()} is called for the first time.*/
+   #next()} is called for the first time.
+   返回该term在多少个doc出现过
+   */
   int doc();
 
   /** Returns the frequency of the term within the current document.  <p> This
-   is invalid until {@link #next()} is called for the first time.*/
+   is invalid until {@link #next()} is called for the first time.
+   返回在最上面的doc中出现的词频
+   */
   int freq();
 
   /** Moves to the next pair in the enumeration.  <p> Returns true iff there is
-   such a next pair in the enumeration. */
+   such a next pair in the enumeration.
+   找到该term的下一个文档的词频、docid等信息
+    */
   boolean next() throws IOException;
 
   /** Attempts to read multiple entries from the enumeration, up to length of
@@ -56,7 +63,10 @@ public interface TermDocs {
    * long as the <i>docs</i> array.
    *
    * <p>Returns the number of entries read.  Zero is only returned when the
-   * stream has been exhausted.  */
+   * stream has been exhausted.  
+   * 一次性多读取一些内容,将读取的内容存储到参数的数组中
+   * 返回接下来每一个属于该term的docid集合,以及每一个doc中该term出现的词频
+   **/
   int read(int[] docs, int[] freqs) throws IOException;
 
   /** Skips entries to the first beyond the current whose document number is
