@@ -20,6 +20,7 @@ import java.io.IOException;
 
 /** An abstract base class for search implementations.
  * Implements some common utility methods.
+ * 根据查询的query、filter条件、是否排序,查找符合条件的doc集合
  */
 public abstract class Searcher implements Searchable {
   /** Returns the documents matching <code>query</code>. */

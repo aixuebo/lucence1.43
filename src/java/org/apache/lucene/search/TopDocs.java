@@ -17,14 +17,16 @@ package org.apache.lucene.search;
  */
 
 /** Expert: Returned by low-level search implementations.
- * @see Searcher#search(Query,Filter,int) */
+ * @see Searcher#search(Query,Filter,int) 
+ * 查询的返回值 
+ **/
 public class TopDocs implements java.io.Serializable {
   /** Expert: The total number of hits for the query.
    * @see Hits#length()
   */
-  public int totalHits;
+  public int totalHits;//总命中多少个doc文档---该文档是命中的所有docid集合,而下面的scoreDocs是在所有的docid中进行过滤,选择最大的若干个文档
   /** Expert: The top hits for the query. */
-  public ScoreDoc[] scoreDocs;
+  public ScoreDoc[] scoreDocs;//每一个doc的分数以及文档的id
 
   /** Expert: Constructs a TopDocs.*/
   TopDocs(int totalHits, ScoreDoc[] scoreDocs) {

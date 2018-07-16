@@ -41,7 +41,7 @@ public interface TermDocs {
 
   /** Returns the current document number.  <p> This is invalid until {@link
    #next()} is called for the first time.
-   返回该term在多少个doc出现过
+   返回docid
    */
   int doc();
 
@@ -66,6 +66,8 @@ public interface TermDocs {
    * stream has been exhausted.  
    * 一次性多读取一些内容,将读取的内容存储到参数的数组中
    * 返回接下来每一个属于该term的docid集合,以及每一个doc中该term出现的词频
+   * 
+   * 返回真正读取了多少个doc
    **/
   int read(int[] docs, int[] freqs) throws IOException;
 

@@ -277,7 +277,9 @@ public abstract class IndexReader {
   public abstract int maxDoc();
 
   /** Returns the stored fields of the <code>n</code><sup>th</sup>
-   <code>Document</code> in this index. */
+   <code>Document</code> in this index. 
+   获取某一个doc的文档内容,该内容是field save的内容
+   */
   public abstract Document document(int n) throws IOException;
 
   /** Returns true if document <i>n</i> has been deleted */
@@ -346,7 +348,9 @@ public abstract class IndexReader {
    */
   public abstract TermEnum terms(Term t) throws IOException;
 
-  /** Returns the number of documents containing the term <code>t</code>. */
+  /** Returns the number of documents containing the term <code>t</code>. 
+   * 返回该term出现在多少个doc中 
+   **/
   public abstract int docFreq(Term t) throws IOException;
 
   /** Returns an enumeration of all the documents which contain

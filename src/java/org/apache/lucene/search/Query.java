@@ -48,6 +48,9 @@ public abstract class Query implements java.io.Serializable, Cloneable {
   /** Sets the boost for this query clause to <code>b</code>.  Documents
    * matching this clause will (in addition to the normal weightings) have
    * their score multiplied by <code>b</code>.
+   * 每一个查询query匹配,都会有一个优先级,该优先级会用于打分
+   * 因为最终结果是由多个query决定的,肯定希望query层面有一个优先级
+   * 默认是1,表示所有query都是同一个优先级
    */
   public void setBoost(float b) { boost = b; }
 
@@ -71,7 +74,7 @@ public abstract class Query implements java.io.Serializable, Cloneable {
   }
 
   /** Expert: Constructs an appropriate Weight implementation for this query.
-   *
+   *  构建一个适当的权重实现
    * <p>Only implemented by primitive queries, which re-write to themselves.
    */
   protected Weight createWeight(Searcher searcher) {

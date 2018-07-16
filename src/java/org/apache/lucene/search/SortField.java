@@ -29,16 +29,21 @@ import java.util.Locale;
  * @since   lucene 1.4
  * @version $Id: SortField.java,v 1.9 2004/05/24 22:51:42 tjones Exp $
  * @see Sort
+ * 表示在一个field属性中,如何排序
  */
 public class SortField
 implements Serializable {
 
   /** Sort by document score (relevancy).  Sort values are Float and higher
-   * values are at the front. */
+   * values are at the front.
+   * 按照得分排序 
+   **/
   public static final int SCORE = 0;
 
   /** Sort by document number (index order).  Sort values are Integer and lower
-   * values are at the front. */
+   * values are at the front. 
+   * 按照docid排序 
+   **/
   public static final int DOC = 1;
 
   /** Guess type of sort based on field contents.  A regular expression is used
@@ -75,11 +80,11 @@ implements Serializable {
   public static final SortField FIELD_DOC = new SortField (null, DOC);
 
 
-  private String field;
+  private String field;//属性
   private int type = AUTO;  // defaults to determining type dynamically
   private Locale locale;    // defaults to "natural order" (no Locale)
-  boolean reverse = false;  // defaults to natural order
-  private SortComparatorSource factory;
+  boolean reverse = false;  // defaults to natural order 倒排还是正序
+  private SortComparatorSource factory;//如何排序
 
   /** Creates a sort by terms in the given field where the type of term value
    * is determined dynamically ({@link #AUTO AUTO}).

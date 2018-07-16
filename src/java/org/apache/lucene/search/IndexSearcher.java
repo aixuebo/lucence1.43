@@ -25,7 +25,7 @@ import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.index.Term;
 
 /** Implements search over a single IndexReader.
- *
+ * 搜索一个单一的segment
  * <p>Applications usually need only call the inherited {@link #search(Query)}
  * or {@link #search(Query,Filter)} methods.
  */
@@ -64,21 +64,27 @@ public class IndexSearcher extends Searcher {
       reader.close();
   }
 
-  // inherit javadoc
+  // inherit javadoc 返回该term出现在多少个doc中 
   public int docFreq(Term term) throws IOException {
     return reader.docFreq(term);
   }
 
-  // inherit javadoc
+  // inherit javadoc  获取某一个doc的文档内容,该内容是field save的内容
   public Document doc(int i) throws IOException {
     return reader.document(i);
   }
 
-  // inherit javadoc
+  // inherit javadoc 一共有多少个doc 有field 被save
   public int maxDoc() throws IOException {
     return reader.maxDoc();
   }
 
+  /**
+   * @param query查询条件
+   * @param filter 对命中的文档进行过滤
+   * @param nDocs 最多返回得分最多的几个文档
+   * 返回查询结果---一共命中多少个doc,以及最大得分的几个doc的id和分数
+   */
   // inherit javadoc
   public TopDocs search(Query query, Filter filter, final int nDocs)
        throws IOException {
@@ -87,17 +93,17 @@ public class IndexSearcher extends Searcher {
       return new TopDocs(0, new ScoreDoc[0]);
 
     final BitSet bits = filter != null ? filter.bits(reader) : null;
-    final HitQueue hq = new HitQueue(nDocs);
+    final HitQueue hq = new HitQueue(nDocs);//排序方式
     final int[] totalHits = new int[1];
     scorer.score(new HitCollector() {
         private float minScore = 0.0f;
-	public final void collect(int doc, float score) {
+	public final void collect(int doc, float score) {//进来的都是query命中的文档
 	  if (score > 0.0f &&			  // ignore zeroed buckets
-	      (bits==null || bits.get(doc))) {	  // skip docs not in bits
-	    totalHits[0]++;
-            if (hq.size() < nDocs || score >= minScore) {
-              hq.insert(new ScoreDoc(doc, score));
-              minScore = ((ScoreDoc)hq.top()).score; // maintain minScore
+	      (bits==null || bits.get(doc))) {	  // skip docs not in bits 说明该文档是可以使用的
+	    totalHits[0]++;//记录命中了多少个有效的文档
+            if (hq.size() < nDocs || score >= minScore) {//分数比最小的大,或者没有达到nDocs个文档,就添加
+              hq.insert(new ScoreDoc(doc, score));//添加新的对象
+              minScore = ((ScoreDoc)hq.top()).score; // maintain minScore  选择最小的分数
             }
 	  }
 	}
@@ -124,9 +130,9 @@ public class IndexSearcher extends Searcher {
     final int[] totalHits = new int[1];
     scorer.score(new HitCollector() {
         public final void collect(int doc, float score) {
-          if (score > 0.0f &&			  // ignore zeroed buckets
-              (bits==null || bits.get(doc))) {	  // skip docs not in bits
-            totalHits[0]++;
+          if (score > 0.0f &&			  // ignore zeroed buckets  
+              (bits==null || bits.get(doc))) {	  // skip docs not in bits 说明该文档是可以使用的
+            totalHits[0]++;//记录命中了多少个有效的文档
             hq.insert(new FieldDoc(doc, score));
           }
         }
@@ -140,7 +146,7 @@ public class IndexSearcher extends Searcher {
   }
 
 
-  // inherit javadoc
+  // inherit javadoc 搜集满足条件的所有docid以及得分
   public void search(Query query, Filter filter,
                      final HitCollector results) throws IOException {
     HitCollector collector = results;

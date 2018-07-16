@@ -19,6 +19,7 @@ package org.apache.lucene.search;
 /** Lower-level search API.
  * @see Searcher#search(Query,HitCollector)
  * @version $Id: HitCollector.java,v 1.6 2004/03/29 22:48:03 cutting Exp $
+ * 一个集合,收集匹配query的docid,以及对应的得分,<docid,得分>组成集合的元祖
  */
 public abstract class HitCollector {
   /** Called once for every non-zero scoring document, with the document number
@@ -26,6 +27,7 @@ public abstract class HitCollector {
    *
    * <P>If, for example, an application wished to collect all of the hits for a
    * query in a BitSet, then it might:<pre>
+   * 下面的例子是收集匹配query的docid集合,并且将docid存放到bitset中
    *   Searcher searcher = new IndexSearcher(indexReader);
    *   final BitSet bits = new BitSet(indexReader.maxDoc());
    *   searcher.search(query, new HitCollector() {
@@ -44,6 +46,7 @@ public abstract class HitCollector {
    * <p>Note: The <code>score</code> passed to this method is a raw score.
    * In other words, the score will not necessarily be a float whose value is
    * between 0 and 1.
+   * 传递匹配的docid 以及 对应的得分
    */
   public abstract void collect(int doc, float score);
 }

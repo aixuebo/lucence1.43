@@ -37,16 +37,18 @@ public class RAMOutputStream extends OutputStream {
     file = f;
   }
 
-  /** Copy the current contents of this buffer to the named output. */
+  /** Copy the current contents of this buffer to the named output.
+   * 将内存信息输出到out中 
+   **/
   public void writeTo(OutputStream out) throws IOException {
     flush();
-    final long end = file.length;
-    long pos = 0;
+    final long end = file.length;//一共内存中存储了多少信息
+    long pos = 0;//从头开始输出
     int buffer = 0;
-    while (pos < end) {
-      int length = BUFFER_SIZE;
+    while (pos < end) {//只要没有到最后,就不断迭代
+      int length = BUFFER_SIZE;//每次输出一个缓冲区数据
       long nextPos = pos + length;
-      if (nextPos > end) {                        // at the last buffer
+      if (nextPos > end) {                        // at the last buffer  说明最后一组数据了,没有缓冲区那么多,剩余多少就是多少
         length = (int)(end - pos);
       }
       out.writeBytes((byte[])file.buffers.elementAt(buffer++), length);

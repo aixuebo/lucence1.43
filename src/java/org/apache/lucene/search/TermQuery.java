@@ -23,6 +23,8 @@ import org.apache.lucene.index.IndexReader;
 
 /** A Query that matches documents containing a term.
   This may be combined with other terms with a {@link BooleanQuery}.
+  用于查询doc中包含该term的文档
+  该查询也可能是一个组合查询，返回包含多个term的doc,使用BooleanQuery
   */
 public class TermQuery extends Query {
   private Term term;
@@ -138,7 +140,10 @@ public class TermQuery extends Query {
     return new TermWeight(searcher);
   }
 
-  /** Prints a user-readable version of this query. */
+  /** Prints a user-readable version of this query. 
+   * 可读的方式读取这种查询格式:
+   *  field:text^0.8
+   **/
   public String toString(String field) {
     StringBuffer buffer = new StringBuffer();
     if (!term.field().equals(field)) {

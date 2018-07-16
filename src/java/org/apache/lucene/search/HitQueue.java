@@ -18,6 +18,7 @@ package org.apache.lucene.search;
 
 import org.apache.lucene.util.PriorityQueue;
 
+//最简单的排序方式,即按照分数进行排序
 final class HitQueue extends PriorityQueue {
   HitQueue(int size) {
     initialize(size);
@@ -26,7 +27,7 @@ final class HitQueue extends PriorityQueue {
   protected final boolean lessThan(Object a, Object b) {
     ScoreDoc hitA = (ScoreDoc)a;
     ScoreDoc hitB = (ScoreDoc)b;
-    if (hitA.score == hitB.score)
+    if (hitA.score == hitB.score)//分数相同的话,只能按照docid排序了
       return hitA.doc > hitB.doc; 
     else
       return hitA.score < hitB.score;

@@ -28,7 +28,7 @@ import org.apache.lucene.index.IndexReader;
 
 /**
  * A Filter that restricts search results to a range of time.
- *
+ * 返回field的结果在时间范围内---该field存储的内容一定是时间内容
  * <p>For this to work, documents must have been indexed with a
  * {@link DateField}.
  */

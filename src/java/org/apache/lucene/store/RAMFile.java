@@ -18,8 +18,9 @@ package org.apache.lucene.store;
 
 import java.util.Vector;
 
+//内存文件系统
 class RAMFile {
-  Vector buffers = new Vector();
+  Vector buffers = new Vector();//内存使用集合作为存储
   long length;
   long lastModified = System.currentTimeMillis();
 }

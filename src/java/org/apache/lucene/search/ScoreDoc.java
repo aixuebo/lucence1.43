@@ -17,15 +17,16 @@ package org.apache.lucene.search;
  */
 
 /** Expert: Returned by low-level search implementations.
+ * 代表一个doc文档的分数
  * @see TopDocs */
 public class ScoreDoc implements java.io.Serializable {
   /** Expert: The score of this document for the query. */
-  public float score;
+  public float score;//分数
 
   /** Expert: A hit document's number.
    * @see Searcher#doc(int)
    */
-  public int doc;
+  public int doc;//文档id
 
   /** Expert: Constructs a ScoreDoc. */
   public ScoreDoc(int doc, float score) {

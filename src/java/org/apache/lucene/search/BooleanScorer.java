@@ -169,18 +169,18 @@ final class BooleanScorer extends Scorer {
       if (bucket == null)
 	table.buckets[i] = bucket = new Bucket();
       
-      if (bucket.doc != doc) {			  // invalid bucket
-	bucket.doc = doc;			  // set doc
-	bucket.score = score;			  // initialize score
-	bucket.bits = mask;			  // initialize mask
-	bucket.coord = 1;			  // initialize coord
-
-	bucket.next = table.first;		  // push onto valid list
-	table.first = bucket;
-      } else {					  // valid bucket
-	bucket.score += score;			  // increment score
-	bucket.bits |= mask;			  // add bits in mask
-	bucket.coord++;				  // increment coord
+    if (bucket.doc != doc) {			  // invalid bucket
+		bucket.doc = doc;			  // set doc
+		bucket.score = score;			  // initialize score
+		bucket.bits = mask;			  // initialize mask
+		bucket.coord = 1;			  // initialize coord
+	
+		bucket.next = table.first;		  // push onto valid list
+		table.first = bucket;
+    } else {					  // valid bucket
+		bucket.score += score;			  // increment score
+		bucket.bits |= mask;			  // add bits in mask
+		bucket.coord++;				  // increment coord
       }
     }
   }

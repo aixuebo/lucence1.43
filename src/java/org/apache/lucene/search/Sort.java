@@ -106,9 +106,9 @@ implements Serializable {
 	public static final Sort RELEVANCE = new Sort();
 
 	/** Represents sorting by index order. */
-	public static final Sort INDEXORDER = new Sort (SortField.FIELD_DOC);
+	public static final Sort INDEXORDER = new Sort (SortField.FIELD_DOC);//按照docid排序
 
-	// internal representation of the sort criteria
+	// internal representation of the sort criteria 代表排序标准
 	SortField[] fields;
 
 

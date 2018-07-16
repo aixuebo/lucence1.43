@@ -28,7 +28,9 @@ package org.apache.lucene.search;
  */
 public interface ScoreDocComparator {
 
-	/** Special comparator for sorting hits according to computed relevance (document score). */
+	/** Special comparator for sorting hits according to computed relevance (document score). 
+	 * 按照doc的得分排序 
+	 **/
 	static final ScoreDocComparator RELEVANCE = new ScoreDocComparator() {
 		public int compare (ScoreDoc i, ScoreDoc j) {
 			if (i.score > j.score) return -1;
@@ -44,7 +46,9 @@ public interface ScoreDocComparator {
 	};
 
 
-	/** Special comparator for sorting hits according to index order (document number). */
+	/** Special comparator for sorting hits according to index order (document number). 
+	 * 按照docid排序
+	 **/
 	static final ScoreDocComparator INDEXORDER = new ScoreDocComparator() {
 		public int compare (ScoreDoc i, ScoreDoc j) {
 			if (i.doc < j.doc) return -1;
@@ -67,6 +71,7 @@ public interface ScoreDocComparator {
 	 * @param j Second ScoreDoc
 	 * @return <code>-1</code> if <code>i</code> should come before <code>j</code><br><code>1</code> if <code>i</code> should come after <code>j</code><br><code>0</code> if they are equal
 	 * @see java.util.Comparator
+	 * 如何对文档排序
 	 */
 	int compare (ScoreDoc i, ScoreDoc j);
 
