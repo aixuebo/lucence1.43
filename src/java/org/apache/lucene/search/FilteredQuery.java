@@ -23,7 +23,7 @@ import java.util.BitSet;
 
 /**
  * A query that applies a filter to the results of another query.
- *
+ * 一个查询query,配合一个filter过滤器,对query的结果进行过滤
  * <p>Note: the bits are retrieved from the filter each time this
  * query is used in a search - use a CachingWrapperFilter to avoid
  * regenerating the bits every time.
@@ -73,15 +73,15 @@ extends Query {
       // the given hit has been filtered out.
       public Scorer scorer (IndexReader indexReader) throws IOException {
         final Scorer scorer = weight.scorer (indexReader);
-        final BitSet bitset = filter.bits (indexReader);
+        final BitSet bitset = filter.bits (indexReader);//创建过滤器内容
         return new Scorer (query.getSimilarity (searcher)) {
 
-          // pass these methods through to the enclosed scorer
+          // pass these methods through to the enclosed scorer 通过query获取下一个匹配的文档
           public boolean next() throws IOException { return scorer.next(); }
           public int doc() { return scorer.doc(); }
           public boolean skipTo (int i) throws IOException { return scorer.skipTo(i); }
 
-          // if the document has been filtered out, set score to 0.0
+          // if the document has been filtered out, set score to 0.0 如果该文档属于filter需要的,则返回该文档得分,不属于filter的,则配置为0分
           public float score() throws IOException {
             return (bitset.get(scorer.doc())) ? scorer.score() : 0.0f;
           }
@@ -89,7 +89,7 @@ extends Query {
           // add an explanation about whether the document was filtered
           public Explanation explain (int i) throws IOException {
             Explanation exp = scorer.explain (i);
-            if (bitset.get(i))
+            if (bitset.get(i)) //表示该doc是允许通过的
               exp.setDescription ("allowed by filter: "+exp.getDescription());
             else
               exp.setDescription ("removed by filter: "+exp.getDescription());
@@ -100,7 +100,7 @@ extends Query {
     };
   }
 
-  /** Rewrites the wrapped query. */
+  /** Rewrites the wrapped query.对query进行重构,然后添加对应的filter */
   public Query rewrite(IndexReader reader) throws IOException {
     Query rewritten = query.rewrite(reader);
     if (rewritten != query) {

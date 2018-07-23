@@ -16,15 +16,17 @@ package org.apache.lucene.search;
  * limitations under the License.
  */
 
-/** A clause in a BooleanQuery. */
+/** A clause in a BooleanQuery.
+ * 表示boolean查询中的某一个查询条件 
+ **/
 public class BooleanClause implements java.io.Serializable {
-  /** The query whose matching documents are combined by the boolean query. */
+  /** The query whose matching documents are combined by the boolean query. 查询条件*/
   public Query query;
   /** If true, documents documents which <i>do not</i>
-    match this sub-query will <i>not</i> match the boolean query. */
+    match this sub-query will <i>not</i> match the boolean query. 必须存在该query结果*/
   public boolean required = false;
   /** If true, documents documents which <i>do</i>
-    match this sub-query will <i>not</i> match the boolean query. */
+    match this sub-query will <i>not</i> match the boolean query. 不能存在该query*/
   public boolean prohibited = false;
   
   /** Constructs a BooleanClause with query <code>q</code>, required

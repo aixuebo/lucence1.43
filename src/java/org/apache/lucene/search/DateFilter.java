@@ -106,6 +106,7 @@ public class DateFilter extends Filter {
    * Returns a BitSet with true for documents which should be
    * permitted in search results, and false for those that should
    * not.
+   * 满足条件的docId存储到BitSet中
    */
   public BitSet bits(IndexReader reader) throws IOException {
     BitSet bits = new BitSet(reader.maxDoc());

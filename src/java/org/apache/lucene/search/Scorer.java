@@ -47,7 +47,7 @@ public abstract class Scorer {
 
   /** Returns the current document number.  Initially invalid, until {@link
    * #next()} is called the first time. 
-   * 返回此时正在处理的docid,即匹配query的docid 
+   * 返回此时正在处理的docid,即匹配query的docid
    **/
   public abstract int doc();
 

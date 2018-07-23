@@ -53,15 +53,24 @@ public class BooleanQuery extends Query {
   public BooleanQuery() {}
 
   /** Adds a clause to a boolean query.  Clauses may be:
+   * 添加一个查询条款,
    * <ul>
    * <li><code>required</code> which means that documents which <i>do not</i>
    * match this sub-query will <i>not</i> match the boolean query;
+   * 说明必须存在该query,如果该query不匹配,则boolean查询结果就是false
+   * 
    * <li><code>prohibited</code> which means that documents which <i>do</i>
-   * match this sub-query will <i>not</i> match the boolean query; or
+   * match this sub-query will <i>not</i> match the boolean query; 
+   * 禁止,说明如果匹配了该query,则boolean的结果是false
+   * 
+   * or
    * <li>neither, in which case matched documents are neither prohibited from
    * nor required to match the sub-query. However, a document must match at
    * least 1 sub-query to match the boolean query.
+   * 还有一种情况是,文档既不需要完全匹配query,也不需要完全禁止该query。
+   * 
    * </ul>
+   * 如果required和prohibited都是true,说明是错误的配置,这两个query是冲突的
    * It is an error to specify a clause as both <code>required</code> and
    * <code>prohibited</code>.
    *
@@ -81,7 +90,7 @@ public class BooleanQuery extends Query {
     clauses.addElement(clause);
   }
 
-  /** Returns the set of clauses in this query. */
+  /** Returns the set of clauses in this query. 返回所有的查询条件集合*/
   public BooleanClause[] getClauses() {
     return (BooleanClause[])clauses.toArray(new BooleanClause[0]);
   }
@@ -133,12 +142,12 @@ public class BooleanQuery extends Query {
       // from a BooleanScorer are not always sorted by document number (sigh)
       // and hence BooleanScorer cannot implement skipTo() correctly, which is
       // required by ConjunctionScorer.
-      boolean allRequired = true;
-      boolean noneBoolean = true;
+      boolean allRequired = true;//true表示所有的query都是必须的
+      boolean noneBoolean = true;//表示所有的子query,都不存在boolean query
       for (int i = 0 ; i < weights.size(); i++) {
         BooleanClause c = (BooleanClause)clauses.elementAt(i);
         if (!c.required)
-          allRequired = false;
+          allRequired = false;//有任意一个query不是必须的
         if (c.query instanceof BooleanQuery)
           noneBoolean = false;
       }
@@ -237,7 +246,7 @@ public class BooleanQuery extends Query {
       }
     }
 
-    BooleanQuery clone = null;                    // recursively rewrite
+    BooleanQuery clone = null;                    // recursively rewrite 递归让所有的子query都进行重写操作
     for (int i = 0 ; i < clauses.size(); i++) {
       BooleanClause c = (BooleanClause)clauses.elementAt(i);
       Query query = c.query.rewrite(reader);

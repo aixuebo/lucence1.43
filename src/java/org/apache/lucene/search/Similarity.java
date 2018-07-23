@@ -117,11 +117,14 @@ public abstract class Similarity {
    * must be re-indexed if this method is altered.
    *
    * @param fieldName the name of the field
-   * @param numTokens the total number of tokens contained in fields named
+   * @param numTokens the total number of tokens contained in fields named 该field中有多少个token词
    * <i>fieldName</i> of <i>doc</i>.
-   * @return a normalization factor for hits on this field of this document
+   * @return a normalization factor for hits on this field of this document 返回该文档的某一个field归一化因子
    *
    * @see Field#setBoost(float)
+   * 控制文件越大，term越多，自然term频率就比 文档小的 多，因此在tf计算中就高,这个逻辑是有问题的，因此要解决该逻辑
+   * 
+   * 该文档的field的词越多,得分越小 
    */
   public abstract float lengthNorm(String fieldName, int numTokens);
 
@@ -201,6 +204,7 @@ public abstract class Similarity {
    *
    * @param freq the frequency of a term within a document
    * @return a score factor based on a term's within-document frequency
+   * 表示一个term在该document中出现的频次，频次越高，分数应该越高
    */
   public float tf(int freq) {
     return tf((float)freq);
@@ -250,6 +254,7 @@ public abstract class Similarity {
    * @param term the term in question
    * @param searcher the document collection being searched
    * @return a score factor for the term
+   * term在多少个doc出现过,如果一个term越不常出现,则分数应该越高 
    */
   public float idf(Term term, Searcher searcher) throws IOException {
     return idf(searcher.docFreq(term), searcher.maxDoc());
@@ -296,9 +301,13 @@ public abstract class Similarity {
    * larger values when the ratio between these parameters is large and smaller
    * values when the ratio between them is small.
    *
-   * @param overlap the number of query terms matched in the document
-   * @param maxOverlap the total number of terms in the query
+   * @param overlap the number of query terms matched in the document 在该文档中,有多少个不同的term存在
+   * @param maxOverlap the total number of terms in the query 在query中一共有多少个不同的term
    * @return a score factor based on term overlap with the query
+   * 是一个评分因子，这是一个搜索时的因子，是在搜索的时候起作用
+   * 
+   * 即不是基于term,而是针对整个query,将query分词成若干个term后,这些term有多少个词在该doc中出现,
+   * 一篇包含了越多的不同的term的doc 一定分数更高一些
    */
   public abstract float coord(int overlap, int maxOverlap);
 }

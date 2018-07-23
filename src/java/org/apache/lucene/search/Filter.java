@@ -24,6 +24,8 @@ import org.apache.lucene.index.IndexReader;
  of an index. */
 public abstract class Filter implements java.io.Serializable {
   /** Returns a BitSet with true for documents which should be permitted in
-    search results, and false for those that should not. */
+    search results, and false for those that should not. 
+    返回的BitSet存储满足条件的docId
+    */
   public abstract BitSet bits(IndexReader reader) throws IOException;
 }
