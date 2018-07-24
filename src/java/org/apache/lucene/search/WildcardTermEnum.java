@@ -24,6 +24,7 @@ import org.apache.lucene.index.Term;
 /**
  * Subclass of FilteredTermEnum for enumerating all terms that match the
  * specified wildcard filter term.
+ * 如何筛选满足通配符的字符
  * <p>
  * Term enumerations are always ordered by Term.compareTo().  Each term in
  * the enumeration is greater than all that precede it.
@@ -31,11 +32,12 @@ import org.apache.lucene.index.Term;
  * @version $Id: WildcardTermEnum.java,v 1.8 2004/05/11 17:23:21 otis Exp $
  */
 public class WildcardTermEnum extends FilteredTermEnum {
-  Term searchTerm;
-  String field = "";
-  String text = "";
-  String pre = "";
-  int preLen = 0;
+  Term searchTerm;//搜索的关于通配符的term
+  String field = "";//搜索的关于通配符的term所在的field
+  String text = "";//搜索的关于通配符的term所在的具体的text内容
+  
+  String pre = "";//截取没有通配符*或者?的前缀
+  int preLen = 0;//前缀长度
   boolean fieldMatch = false;
   boolean endEnum = false;
 
@@ -50,9 +52,9 @@ public class WildcardTermEnum extends FilteredTermEnum {
     field = searchTerm.field();
     text = searchTerm.text();
 
-    int sidx = text.indexOf(WILDCARD_STRING);
-    int cidx = text.indexOf(WILDCARD_CHAR);
-    int idx = sidx;
+    int sidx = text.indexOf(WILDCARD_STRING);//*的位置
+    int cidx = text.indexOf(WILDCARD_CHAR);//?的位置
+    int idx = sidx;//获取第一个*或者?出现的位置
     if (idx == -1) {
       idx = cidx;
     }
@@ -60,23 +62,25 @@ public class WildcardTermEnum extends FilteredTermEnum {
       idx = Math.min(idx, cidx);
     }
 
-    pre = searchTerm.text().substring(0,idx);
+    pre = searchTerm.text().substring(0,idx);//截取没有通配符*或者?的前缀
     preLen = pre.length();
     text = text.substring(preLen);
-    setEnum(reader.terms(new Term(searchTerm.field(), pre)));
+    setEnum(reader.terms(new Term(searchTerm.field(), pre)));//先定位到前缀term的位置
   }
 
+  //计算参数term是否匹配规则--true表示匹配
   protected final boolean termCompare(Term term) {
-    if (field == term.field()) {
-      String searchText = term.text();
-      if (searchText.startsWith(pre)) {
-        return wildcardEquals(text, 0, searchText, preLen);
+    if (field == term.field()) {//field必须相同
+      String searchText = term.text();//拿到term的具体指
+      if (searchText.startsWith(pre)) {//前缀必须相同
+        return wildcardEquals(text, 0, searchText, preLen);//真正去匹配
       }
     }
-    endEnum = true;
+    endEnum = true;//前缀不同,因此说明term已经遍历结束了
     return false;
   }
 
+  //这种模式匹配的权重都是相同的
   public final float difference() {
     return 1.0f;
   }
@@ -93,9 +97,13 @@ public class WildcardTermEnum extends FilteredTermEnum {
   public static final char WILDCARD_CHAR = '?';
 
   /**
-   * Determines if a word matches a wildcard pattern.
+   * Determines if a word mat ches a wildcard pattern.
    * <small>Work released by Granta Design Ltd after originally being done on
    * company time.</small>
+   * @param pattern剩余匹配的通配符
+   * @param patternIdx 从pattern通配符的第几个位置开始匹配
+   * @param string 具体的term
+   * @param stringIdx 从string的第几个位置开始匹配
    */
   public static final boolean wildcardEquals(String pattern, int patternIdx,
     String string, int stringIdx)

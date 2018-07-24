@@ -24,7 +24,9 @@ import org.apache.lucene.index.IndexReader;
 
 /**
  * A Query that matches documents within an exclusive range.
- *
+ * 只要文档包含了该范围内的任何词,都可以被查询出来,只是权重不同而已
+ * 
+ * 底层用termQuery表示每一个具体的查询词,用BooleanQuery连接所有的查询的termQuery进行组合
  * @version $Id: RangeQuery.java,v 1.12 2004/03/29 22:48:03 cutting Exp $
  */
 public class RangeQuery extends Query
@@ -96,7 +98,7 @@ public class RangeQuery extends Query
                         }
                         TermQuery tq = new TermQuery(term); // found a match
                         tq.setBoost(getBoost()); // set the boost
-                        query.add(tq, false, false); // add to query
+                        query.add(tq, false, false); // add to query 每一个词都不是必须存在,也不是必须不存在的,即文档有该词,就赋予一定得分
                     }
                 }
                 else {

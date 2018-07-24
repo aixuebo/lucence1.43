@@ -35,7 +35,7 @@ import org.apache.lucene.index.IndexReader;
  */
 public class QueryFilter extends Filter {
   private Query query;
-  private transient WeakHashMap cache = null;
+  private transient WeakHashMap cache = null;//缓存对该query在某一个固定的index所以上的查询结果
 
   /** Constructs a filter which only matches documents matching
    * <code>query</code>.

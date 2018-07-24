@@ -23,19 +23,23 @@ import org.apache.lucene.index.Term;
 /** Subclass of FilteredTermEnum for enumerating all terms that are similiar to the specified filter term.
 
   <p>Term enumerations are always ordered by Term.compareTo().  Each term in
-  the enumeration is greater than all that precede it.  */
+  the enumeration is greater than all that precede it.  
+  通过编辑距离的相似度进行匹配,匹配最相似的term
+  */
 public final class FuzzyTermEnum extends FilteredTermEnum {
     double distance;
     boolean endEnum = false;
 
-    Term searchTerm = null;
-    String field = "";
-    String text = "";
-    int textlen;
-    String prefix = "";
-    int prefixLength = 0;
-    float minimumSimilarity;
-    double scale_factor;
+    Term searchTerm = null;//模糊匹配的term
+    String field = "";//模糊匹配的term所在field
+    
+    String text = "";//剩余模糊匹配的字符串
+    int textlen;//剩余模糊匹配字符串的长度
+    String prefix = "";//前缀精准匹配的字符串
+    int prefixLength = 0;//前缀精准匹配的字符串长度
+    
+    float minimumSimilarity;//最小模糊相似度阈值
+    double scale_factor;//minimumSimilarity越小,scale_factor计算的结果越小
     
     
     /**
@@ -77,14 +81,14 @@ public final class FuzzyTermEnum extends FilteredTermEnum {
     public FuzzyTermEnum(IndexReader reader, Term term, float minSimilarity, int prefixLength) throws IOException {
         super();
         minimumSimilarity = minSimilarity;
-        scale_factor = 1.0f / (1.0f - minimumSimilarity);
+        scale_factor = 1.0f / (1.0f - minimumSimilarity);//minimumSimilarity越小,scale_factor计算的结果越小
         searchTerm = term;
         field = searchTerm.field();
         text = searchTerm.text();
         textlen = text.length();
-        if(prefixLength > 0 && prefixLength < textlen){
+        if(prefixLength > 0 && prefixLength < textlen){//截取查询前缀
             this.prefixLength = prefixLength;
-            prefix = text.substring(0, prefixLength);
+            prefix = text.substring(0, prefixLength);//查询前缀
             text = text.substring(prefixLength);
             textlen = text.length();
         }
@@ -97,14 +101,14 @@ public final class FuzzyTermEnum extends FilteredTermEnum {
      */
     protected final boolean termCompare(Term term) {
         String termText = term.text();
-        if (field == term.field() && termText.startsWith(prefix)) {
-            String target = termText.substring(prefixLength);
-            int targetlen = target.length();
-            int dist = editDistance(text, target, textlen, targetlen);
+        if (field == term.field() && termText.startsWith(prefix)) {//field和前缀必须相同
+            String target = termText.substring(prefixLength);//term剩余内容
+            int targetlen = target.length();//剩余长度
+            int dist = editDistance(text, target, textlen, targetlen);//计算相似度---操作次数越少，说明两个字符串距离Levenshtein Distance越小，表示两个字符串越想似
             distance = 1 - ((double)dist / (double)Math.min(textlen, targetlen));
-            return (distance > minimumSimilarity);
+            return (distance > minimumSimilarity);//比最小相似度大,就选择该term
         }
-        endEnum = true;
+        endEnum = true;//前缀不同,因此说明term已经遍历结束了
         return false;
     }
     
@@ -122,6 +126,7 @@ public final class FuzzyTermEnum extends FilteredTermEnum {
     
     /**
      Finds and returns the smallest of three integers 
+     找到三个int值中最小的
      */
     private static final int min(int a, int b, int c) {
         int t = (a < b) ? a : b;
@@ -142,35 +147,39 @@ public final class FuzzyTermEnum extends FilteredTermEnum {
      <p>This method takes in four parameters; two strings and their respective 
      lengths to compute the Levenshtein distance between the two strings.
      The result is returned as an integer.
+     操作次数越少，说明两个字符串距离Levenshtein Distance越小，表示两个字符串越想似
+     @param s表示匹配格式  n是s的长度
+     @param t表示target目标term的值 m是t的长度
      */ 
     private final int editDistance(String s, String t, int n, int m) {
-        if (e.length <= n || e[0].length <= m) {
+        if (e.length <= n || e[0].length <= m) {//根据匹配的n和m的长度,创建数组
             e = new int[Math.max(e.length, n+1)][Math.max(e[0].length, m+1)];
         }
         int d[][] = e; // matrix
-        int i; // iterates through s
-        int j; // iterates through t
-        char s_i; // ith character of s
+        int i; // iterates through s 循环每一个匹配的字符
+        int j; // iterates through t 循环每一个目标的字符
+        char s_i; // ith character of s 此时计算的是匹配字符
         
         if (n == 0) return m;
         if (m == 0) return n;
         
         // init matrix d
-        for (i = 0; i <= n; i++) d[i][0] = i;
-        for (j = 0; j <= m; j++) d[0][j] = j;
+        for (i = 0; i <= n; i++) d[i][0] = i;//固定列,因此输入第0列---内容就是n个长度----匹配值为列
+        for (j = 0; j <= m; j++) d[0][j] = j;//固定行,因此输入第0行---内容就是m个长度----target目标值为行
         
-        // start computing edit distance
-        for (i = 1; i <= n; i++) {
-            s_i = s.charAt(i - 1);
-            for (j = 1; j <= m; j++) {
-                if (s_i != t.charAt(j-1))
+        // start computing edit distance 开始计算编辑距离
+        for (i = 1; i <= n; i++) {//循环每一个匹配的字符
+            s_i = s.charAt(i - 1);//获取每一个匹配的字符
+            for (j = 1; j <= m; j++) {//循环每一个target目标
+                if (s_i != t.charAt(j-1))//说明不等于
                     d[i][j] = min(d[i-1][j], d[i][j-1], d[i-1][j-1])+1;
-                else d[i][j] = min(d[i-1][j]+1, d[i][j-1]+1, d[i-1][j-1]);
+                else //说明等于
+                	d[i][j] = min(d[i-1][j]+1, d[i][j-1]+1, d[i-1][j-1]);
             }
         }
         
         // we got the result!
-        return d[n][m];
+        return d[n][m];//获取最右下角的数字,就是编辑距离
     }
     
   public void close() throws IOException {

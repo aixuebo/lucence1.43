@@ -35,7 +35,7 @@ import org.apache.lucene.index.Term;
  * {@link FuzzyTermEnum}, respectively.
  */
 public abstract class MultiTermQuery extends Query {
-    private Term term;
+    private Term term;//带*或者?符号的term
 
     /** Constructs a query for terms matching <code>term</code>. */
     public MultiTermQuery(Term term) {
@@ -57,7 +57,7 @@ public abstract class MultiTermQuery extends Query {
           Term t = enumerator.term();
           if (t != null) {
             TermQuery tq = new TermQuery(t);      // found a match
-            tq.setBoost(getBoost() * enumerator.difference()); // set the boost
+            tq.setBoost(getBoost() * enumerator.difference()); // set the boost 只是差距不同,权重不同,因此设置该权重即可
             query.add(tq, false, false);          // add to query
           }
         } while (enumerator.next());

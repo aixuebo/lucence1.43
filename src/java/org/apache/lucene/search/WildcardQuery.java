@@ -26,6 +26,7 @@ import java.io.IOException;
  * needs to iterate over all terms. In order to prevent extremely slow WildcardQueries,
  * a Wildcard term must not start with one of the wildcards <code>*</code> or
  * <code>?</code>.
+ * 使用通配符？和*进行匹配,这个查询会很慢,他需要迭代所有的term,因为*可以替代所有元素,所以遍历所有的term肯定会很慢的,为了提高效率,应该不允许以*开头进行匹配
  * 
  * @see WildcardTermEnum
  */

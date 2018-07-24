@@ -22,7 +22,9 @@ import org.apache.lucene.index.Term;
 import org.apache.lucene.index.TermEnum;
 import org.apache.lucene.index.IndexReader;
 
-/** A Query that matches documents containing terms with a specified prefix. */
+/** A Query that matches documents containing terms with a specified prefix.
+ * 匹配任何文章中包含term前缀的即可,其实该词和rangeQuery没什么太大区别,只是区间范围是由前缀控制,而 rangeQuery是由开始-结束 term控制
+ **/
 public class PrefixQuery extends Query {
   private Term prefix;
 
@@ -47,7 +49,7 @@ public class PrefixQuery extends Query {
             term.field() == prefixField) {
           TermQuery tq = new TermQuery(term);	  // found a match
           tq.setBoost(getBoost());                // set the boost
-          query.add(tq, false, false);		  // add to query
+          query.add(tq, false, false);		  // add to query,都是fasle,表示该词语不是必须出现的,也不是必须删除的
           //System.out.println("added " + term);
         } else {
           break;

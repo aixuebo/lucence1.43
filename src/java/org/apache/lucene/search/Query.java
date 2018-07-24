@@ -26,15 +26,19 @@ import org.apache.lucene.index.IndexReader;
 /** The abstract base class for queries.
     <p>Instantiable subclasses are:
     <ul>
-    <li> {@link TermQuery}
-    <li> {@link MultiTermQuery}
-    <li> {@link BooleanQuery}
-    <li> {@link WildcardQuery}
+    <li> {@link TermQuery} 最基础的查询,满足某一个具体term的查询
+    <li> {@link BooleanQuery}  最高级的查询,满足各种条件的组合查询
+    
     <li> {@link PhraseQuery}
-    <li> {@link PrefixQuery}
     <li> {@link PhrasePrefixQuery}
-    <li> {@link FuzzyQuery}
-    <li> {@link RangeQuery}
+    
+    //也是类似rangeQuery,只是模糊匹配,不同的term应该权重是不同的,因此比rangeQuery多设置了个权重
+    <li> {@link MultiTermQuery} //FuzzyQuery和WildcardQuery的基础类,属于满足多个词匹配模式的查询
+    <li> {@link FuzzyQuery} //通过编辑距离的相似度进行匹配,匹配最相似的term
+    <li> {@link WildcardQuery} //使用通配符？和*进行匹配,这个查询会很慢,他需要迭代所有的term,因为*可以替代所有元素,所以遍历所有的term肯定会很慢的,为了提高效率,应该不允许以*开头进行匹配
+    
+    <li> {@link PrefixQuery} //匹配任何文章中包含term前缀的即可,其实该词和rangeQuery没什么太大区别,只是区间范围是由前缀控制,而 rangeQuery是由开始-结束 term控制
+    <li> {@link RangeQuery} //由开始--结束 term控制查询范围,属于booleanQuery--包含内部具体的termQuery操作
     <li> {@link org.apache.lucene.search.spans.SpanQuery}
     </ul>
     <p>A parser for queries is contained in:
