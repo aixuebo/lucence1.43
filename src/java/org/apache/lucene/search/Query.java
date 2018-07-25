@@ -29,8 +29,8 @@ import org.apache.lucene.index.IndexReader;
     <li> {@link TermQuery} 最基础的查询,满足某一个具体term的查询
     <li> {@link BooleanQuery}  最高级的查询,满足各种条件的组合查询
     
-    <li> {@link PhraseQuery}
-    <li> {@link PhrasePrefixQuery}
+    <li> {@link PhraseQuery} 查询匹配文档是包含一组term,并且该term是按照一定顺序出现的,这种情况匹配短语 应该比匹配单个词 要赋予更高的权重
+    <li> {@link PhrasePrefixQuery} 主要用来进行同义词查询的
     
     //也是类似rangeQuery,只是模糊匹配,不同的term应该权重是不同的,因此比rangeQuery多设置了个权重
     <li> {@link MultiTermQuery} //FuzzyQuery和WildcardQuery的基础类,属于满足多个词匹配模式的查询

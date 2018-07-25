@@ -29,14 +29,16 @@ final class SloppyPhraseScorer extends PhraseScorer {
         this.slop = slop;
     }
 
+    //查找该doc中包含短语的次数,即短语词频
+    //进入该方法的前提是所有的doc都相同,即所有的term都在改doc存在,因此只需要计算term组成短语的词频即可
     protected final float phraseFreq() throws IOException {
         pq.clear();
-        int end = 0;
+        int end = 0;//最后的一个位置
         for (PhrasePositions pp = first; pp != null; pp = pp.next) {
-            pp.firstPosition();
+            pp.firstPosition();//切换到计算该doc中该term的词频
             if (pp.position > end)
                 end = pp.position;
-            pq.put(pp);				  // build pq from list
+            pq.put(pp);				  // build pq from list  重新排序
         }
 
         float freq = 0.0f;

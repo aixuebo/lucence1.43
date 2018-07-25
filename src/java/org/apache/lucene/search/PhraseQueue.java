@@ -23,6 +23,7 @@ final class PhraseQueue extends PriorityQueue {
     initialize(size);
   }
 
+  //按照文档id排序,然后相同文档id的按照文档位置排序
   protected final boolean lessThan(Object o1, Object o2) {
     PhrasePositions pp1 = (PhrasePositions)o1;
     PhrasePositions pp2 = (PhrasePositions)o2;

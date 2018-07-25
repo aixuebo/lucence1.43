@@ -25,25 +25,29 @@ import org.apache.lucene.index.IndexReader;
 
 /** A Query that matches documents containing a particular sequence of terms.
   This may be combined with other terms with a {@link BooleanQuery}.
+  查询匹配文档是包含一组term,并且该term是按照一定顺序出现的,这种情况匹配短语 应该比匹配单个词 要赋予更高的权重
   */
 public class PhraseQuery extends Query {
   private String field;
-  private Vector terms = new Vector();
-  private Vector positions = new Vector();
+  private Vector terms = new Vector();//存储一组词  元素是Term
+  private Vector positions = new Vector();//存储每一个词对应的序号位置   元素是Integer
   private int slop = 0;
 
   /** Constructs an empty phrase query. */
   public PhraseQuery() {}
 
   /** Sets the number of other words permitted between words in query phrase.
+   * 表示在短语中被允许插入多少个其他无用的词也可以被接受
     If zero, then this is an exact phrase search.  For larger values this works
     like a <code>WITHIN</code> or <code>NEAR</code> operator.
+    如果该值是0,表示精准匹配,如果该阈值很大,则类似工作像within 或者 near操作,即表示近似
 
     <p>The slop is in fact an edit-distance, where the units correspond to
     moves of terms in the query phrase out of position.  For example, to switch
     the order of two words requires two moves (the first move places the words
     atop one another), so to permit re-orderings of phrases, the slop must be
     at least two.
+    实际上slop是编辑距离,移动query的词语的编辑距离
 
     <p>More exact matches are scored higher than sloppier matches, thus search
     results are sorted by exactness.
@@ -73,6 +77,7 @@ public class PhraseQuery extends Query {
    * 
    * @param term
    * @param position
+   * 添加短语中的term和对应的位置
    */
   public void add(Term term, int position) {
       if (terms.size() == 0)
@@ -91,6 +96,7 @@ public class PhraseQuery extends Query {
   
   /**
    * Returns the relative positions of terms in this phrase.
+   * 返回每一个term对应的位置
    */
   public int[] getPositions() {
       int[] result = new int[positions.size()];
@@ -131,7 +137,8 @@ public class PhraseQuery extends Query {
       if (terms.size() == 0)			  // optimize zero-term case
         return null;
 
-      TermPositions[] tps = new TermPositions[terms.size()];
+      //每一个term对应一个TermPositions对象
+      TermPositions[] tps = new TermPositions[terms.size()];//可以next方法获取该term在下一个doc的词频,以及nextPosition方法返回在同一个doc内的每一个词位置
       for (int i = 0; i < terms.size(); i++) {
         TermPositions p = reader.termPositions((Term)terms.elementAt(i));
         if (p == null)
@@ -139,7 +146,7 @@ public class PhraseQuery extends Query {
         tps[i] = p;
       }
 
-      if (slop == 0)				  // optimize exact case
+      if (slop == 0)				  // optimize exact case  精准匹配
         return new ExactPhraseScorer(this, tps, getPositions(), getSimilarity(searcher),
                                      reader.norms(field));
       else

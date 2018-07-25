@@ -34,14 +34,14 @@ import org.apache.lucene.search.Query;
  * add(Term) on the term "Microsoft", then find all terms that has "app" as
  * prefix using IndexReader.terms(Term), and use PhrasePrefixQuery.add(Term[]
  * terms) to add them to the query.
- *
+ * 主要用来进行同义词查询的
  * @author Anders Nielsen
  * @version 1.0
  */
 public class PhrasePrefixQuery extends Query {
   private String field;
-  private ArrayList termArrays = new ArrayList();
-  private Vector positions = new Vector();
+  private ArrayList termArrays = new ArrayList();//元素是Term[],该term表示的是同义词的term
+  private Vector positions = new Vector();//元素是Integer
 
   private int slop = 0;
 
@@ -57,6 +57,7 @@ public class PhrasePrefixQuery extends Query {
 
   /** Add a single term at the next position in the phrase.
    * @see PhraseQuery#add(Term)
+   * 添加term数组
    */
   public void add(Term term) { add(new Term[]{term}); }
 
@@ -64,6 +65,7 @@ public class PhrasePrefixQuery extends Query {
    * may match.
    *
    * @see PhraseQuery#add(Term)
+   * 添加term数组
    */
   public void add(Term[] terms) {
     int position = 0;
@@ -148,7 +150,7 @@ public class PhrasePrefixQuery extends Query {
       
         TermPositions p;
         if (terms.length > 1)
-          p = new MultipleTermPositions(reader, terms);
+          p = new MultipleTermPositions(reader, terms);//多个同义词,每一个词出现的位置都是相当于同一个词出新的位置去计算
         else
           p = reader.termPositions(terms[0]);
       

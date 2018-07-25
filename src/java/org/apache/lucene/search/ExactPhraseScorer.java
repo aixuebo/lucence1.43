@@ -19,6 +19,7 @@ package org.apache.lucene.search;
 import java.io.IOException;
 import org.apache.lucene.index.*;
 
+//精准短语匹配
 final class ExactPhraseScorer extends PhraseScorer {
 
   ExactPhraseScorer(Weight weight, TermPositions[] tps, int[] positions, Similarity similarity,
@@ -26,25 +27,27 @@ final class ExactPhraseScorer extends PhraseScorer {
     super(weight, tps, positions, similarity, norms);
   }
 
+  //查找该doc中包含短语的次数,即短语词频
+  //进入该方法的前提是所有的doc都相同,即所有的term都在改doc存在,因此只需要计算term组成短语的词频即可
   protected final float phraseFreq() throws IOException {
     // sort list with pq
-    for (PhrasePositions pp = first; pp != null; pp = pp.next) {
+    for (PhrasePositions pp = first; pp != null; pp = pp.next) {//从term最小的位置开始查找
       pp.firstPosition();
       pq.put(pp);				  // build pq from list
     }
-    pqToList();					  // rebuild list from pq
+    pqToList();					  // rebuild list from pq 重新排序
 
     int freq = 0;
     do {					  // find position w/ all terms
       while (first.position < last.position) {	  // scan forward in first
-	do {
-	  if (!first.nextPosition())
-	    return (float)freq;
-	} while (first.position < last.position);
-	firstToLast();
+			do {
+			  if (!first.nextPosition())
+			    return (float)freq;
+			} while (first.position < last.position);//找到position都相同的位置
+		firstToLast();//第一个移动到最后一个位置
       }
-      freq++;					  // all equal: a match
-    } while (last.nextPosition());
+      freq++;					  // all equal: a match 匹配一个短语,则累加1
+    } while (last.nextPosition());//只要有下一个term位置就不断循环
   
     return (float)freq;
   }
