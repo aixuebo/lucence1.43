@@ -74,15 +74,16 @@ public class TestPhraseQuery extends TestCase {
 
   /**
    * Ensures slop of 0 works for exact matches, but not reversed
+   * 测试精准匹配短语
    */
   public void testExact() throws Exception {
     // slop is zero by default
-    query.add(new Term("field", "four"));
+    query.add(new Term("field", "four"));//连续的是可以被匹配上的,因此结果是1
     query.add(new Term("field", "five"));
     Hits hits = searcher.search(query);
     assertEquals("exact match", 1, hits.length());
 
-    query = new PhraseQuery();
+    query = new PhraseQuery();//翻转的是不会被匹配上的,因此是0
     query.add(new Term("field", "two"));
     query.add(new Term("field", "one"));
     hits = searcher.search(query);
@@ -91,8 +92,8 @@ public class TestPhraseQuery extends TestCase {
 
   public void testSlop1() throws Exception {
     // Ensures slop of 1 works with terms in order.
-    query.setSlop(1);
-    query.add(new Term("field", "one"));
+    query.setSlop(1);//最大有1个距离
+    query.add(new Term("field", "one"));//两者是连续的,因此是可以匹配的
     query.add(new Term("field", "two"));
     Hits hits = searcher.search(query);
     assertEquals("in order", 1, hits.length());
