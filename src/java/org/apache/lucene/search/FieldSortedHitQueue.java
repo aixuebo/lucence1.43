@@ -29,7 +29,7 @@ import java.text.Collator;
 /**
  * Expert: A hit queue for sorting by hits by terms in more than one field.
  * Uses <code>FieldCache.DEFAULT</code> for maintaining internal term lookup tables.
- *
+ * 将结果排序
  * <p>Created: Dec 8, 2003 12:56:03 PM
  *
  * @author  Tim Jones (Nacimiento Software)
@@ -51,7 +51,7 @@ extends PriorityQueue {
   FieldSortedHitQueue (IndexReader reader, SortField[] fields, int size)
   throws IOException {
     final int n = fields.length;
-    comparators = new ScoreDocComparator[n];
+    comparators = new ScoreDocComparator[n];//每一个field对应一个排序比较器
     this.fields = new SortField[n];
     for (int i=0; i<n; ++i) {
       String fieldname = fields[i].getField();
@@ -63,15 +63,15 @@ extends PriorityQueue {
 
 
   /** Stores a comparator corresponding to each field being sorted by */
-  protected ScoreDocComparator[] comparators;
+  protected ScoreDocComparator[] comparators;//每一个field的内容如何排序---每一个field对应一个排序比较器
 
   /** Stores the sort criteria being used. */
-  protected SortField[] fields;
+  protected SortField[] fields;//field排序顺序
 
   /** Stores the maximum score value encountered, for normalizing.
    *  we only care about scores greater than 1.0 - if all the scores
    *  are less than 1.0, we don't have to normalize. */
-  protected float maxscore = 1.0f;
+  protected float maxscore = 1.0f;//获取所有文档中的最大得分---默认值是1.0
 
 
   /**
@@ -79,24 +79,25 @@ extends PriorityQueue {
    * @param a ScoreDoc
    * @param b ScoreDoc
    * @return <code>true</code> if document <code>a</code> should be sorted after document <code>b</code>.
+   * 按照每一个排序规则 以此比较排序,最后按照docid排序,因为docid一定是唯一的,并且可以排序的
    */
   protected final boolean lessThan (final Object a, final Object b) {
     final ScoreDoc docA = (ScoreDoc) a;
     final ScoreDoc docB = (ScoreDoc) b;
 
-    // keep track of maximum score
+    // keep track of maximum score 获取所有文档中的最大得分
     if (docA.score > maxscore) maxscore = docA.score;
     if (docB.score > maxscore) maxscore = docB.score;
 
     // run comparators
     final int n = comparators.length;
-    int c = 0;
-    for (int i=0; i<n && c==0; ++i) {
+    int c = 0;//比较的结果
+    for (int i=0; i<n && c==0; ++i) {//遍历每一个比较器--如果比较的结果不是0,则不需要再比较下一个比较器了
       c = (fields[i].reverse) ? comparators[i].compare (docB, docA)
                               : comparators[i].compare (docA, docB);
     }
     // avoid random sort order that could lead to duplicates (bug #31241):
-    if (c == 0)
+    if (c == 0) //如果依然是0,那就最后按照doc比较吧
       return docA.doc > docB.doc;
     return c > 0;
   }
@@ -111,14 +112,15 @@ extends PriorityQueue {
    * @param  doc  The FieldDoc to store sort values into.
    * @return  The same FieldDoc passed in.
    * @see Searchable#search(Query,Filter,int,Sort)
+   * 对一个文档的所有排序列进行赋值
    */
   FieldDoc fillFields (final FieldDoc doc) {
-    final int n = comparators.length;
-    final Comparable[] fields = new Comparable[n];
+    final int n = comparators.length;//循环每一种排序属性
+    final Comparable[] fields = new Comparable[n];//最终每一个排序字段对应一个具体的值
     for (int i=0; i<n; ++i)
-      fields[i] = comparators[i].sortValue(doc);
-    doc.fields = fields;
-    if (maxscore > 1.0f) doc.score /= maxscore;   // normalize scores
+      fields[i] = comparators[i].sortValue(doc);//创建该排序字段对应的值
+    doc.fields = fields;//排序规则对应的值集合,比如按照id,age,name排序,则该属性存储的就是三者对应的值,排序的时候会以此循环该值进行比较
+    if (maxscore > 1.0f) doc.score /= maxscore;   // normalize scores---重新对文档的分数进行统一格式化处理
     return doc;
   }
 
@@ -164,7 +166,7 @@ extends PriorityQueue {
     if (type == SortField.DOC) return ScoreDocComparator.INDEXORDER;
     if (type == SortField.SCORE) return ScoreDocComparator.RELEVANCE;
     ScoreDocComparator comparator = lookup (reader, fieldname, type, factory);
-    if (comparator == null) {
+    if (comparator == null) {//根据类型创建不同的比较器
       switch (type) {
         case SortField.AUTO:
           comparator = comparatorAuto (reader, fieldname);
@@ -185,13 +187,14 @@ extends PriorityQueue {
         default:
           throw new RuntimeException ("unknown field type: "+type);
       }
-      store (reader, fieldname, type, factory, comparator);
+      store (reader, fieldname, type, factory, comparator);//存储比较器
     }
     return comparator;
   }
 
   /**
    * Returns a comparator for sorting hits according to a field containing integers.
+   * 文档内容是int,因此根据内容排序
    * @param reader  Index to use.
    * @param fieldname  Field containg integer values.
    * @return  Comparator for sorting hits.
@@ -200,7 +203,7 @@ extends PriorityQueue {
   static ScoreDocComparator comparatorInt (final IndexReader reader, final String fieldname)
   throws IOException {
     final String field = fieldname.intern();
-    final int[] fieldOrder = FieldCache.DEFAULT.getInts (reader, field);
+    final int[] fieldOrder = FieldCache.DEFAULT.getInts (reader, field);//不同文档对应的field是int值
     return new ScoreDocComparator() {
 
       public final int compare (final ScoreDoc i, final ScoreDoc j) {
@@ -258,21 +261,23 @@ extends PriorityQueue {
    * @param fieldname  Field containg string values.
    * @return  Comparator for sorting hits.
    * @throws IOException If an error occurs reading the index.
+   * 按照term的先后顺序排名
    */
   static ScoreDocComparator comparatorString (final IndexReader reader, final String fieldname)
   throws IOException {
     final String field = fieldname.intern();
-    final FieldCache.StringIndex index = FieldCache.DEFAULT.getStringIndex (reader, field);
+    final FieldCache.StringIndex index = FieldCache.DEFAULT.getStringIndex (reader, field);//获取每一个具体的值如何排序
     return new ScoreDocComparator () {
 
       public final int compare (final ScoreDoc i, final ScoreDoc j) {
-        final int fi = index.order[i.doc];
+        final int fi = index.order[i.doc];//i.doc表示该文档对应的term所在序号,从order中获取该term排名
         final int fj = index.order[j.doc];
         if (fi < fj) return -1;
         if (fi > fj) return 1;
         return 0;
       }
 
+      //返回具体的term内容
       public Comparable sortValue (final ScoreDoc i) {
         return index.lookup[index.order[i.doc]];
       }

@@ -31,13 +31,14 @@ import java.util.Locale;
  * @author  Tim Jones (Nacimiento Software)
  * @since   lucene 1.4
  * @version $Id: FieldDocSortedHitQueue.java,v 1.5 2004/05/24 22:51:42 tjones Exp $
+ * 查询结果如何排序
  */
 class FieldDocSortedHitQueue
 extends PriorityQueue {
 
 	// this cannot contain AUTO fields - any AUTO fields should
 	// have been resolved by the time this class is used.
-	volatile SortField[] fields;
+	volatile SortField[] fields;//排序规则
 
 	// used in the case where the fields are sorted by locale
 	// based strings
@@ -107,13 +108,13 @@ extends PriorityQueue {
 		final FieldDoc docA = (FieldDoc) a;
 		final FieldDoc docB = (FieldDoc) b;
 		final int n = fields.length;
-		int c = 0;
-		for (int i=0; i<n && c==0; ++i) {
+		int c = 0;//排序结果
+		for (int i=0; i<n && c==0; ++i) {//只要排序结果是0,说明排序都是相同的,就不断循环排序集合,按照下一个排序规则进行排序
 			final int type = fields[i].getType();
 			if (fields[i].getReverse()) {
 				switch (type) {
-					case SortField.SCORE:
-						float r1 = ((Float)docA.fields[i]).floatValue();
+					case SortField.SCORE://分数都是float类型的
+						float r1 = ((Float)docA.fields[i]).floatValue();//说明该field是存储float类型的,因此获取该属性对应的值,进行比较
 						float r2 = ((Float)docB.fields[i]).floatValue();
 						if (r1 < r2) c = -1;
 						if (r1 > r2) c = 1;
@@ -143,7 +144,7 @@ extends PriorityQueue {
 						if (f1 < f2) c = 1;
 						break;
 					case SortField.CUSTOM:
-						c = docB.fields[i].compareTo (docA.fields[i]);
+						c = docB.fields[i].compareTo (docA.fields[i]);//两个元素如何比较
 						break;
 					case SortField.AUTO:
 						// we cannot handle this - even if we determine the type of object (Float or

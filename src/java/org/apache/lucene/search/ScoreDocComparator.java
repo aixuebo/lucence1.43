@@ -71,7 +71,7 @@ public interface ScoreDocComparator {
 	 * @param j Second ScoreDoc
 	 * @return <code>-1</code> if <code>i</code> should come before <code>j</code><br><code>1</code> if <code>i</code> should come after <code>j</code><br><code>0</code> if they are equal
 	 * @see java.util.Comparator
-	 * 如何对文档排序
+	 * 如何对文档排序---子类实现
 	 */
 	int compare (ScoreDoc i, ScoreDoc j);
 
@@ -83,6 +83,8 @@ public interface ScoreDocComparator {
 	 * @see FieldDoc
 	 * @param i Document
 	 * @return Serializable object
+	 * 返回该文档打分的一个值,该值是必须可以比较的
+	 * 给文档返回一个排序的结果,该结果是可以比较的,比如按照name排序,则返回值就是一个字符串
 	 */
 	Comparable sortValue (ScoreDoc i);
 
@@ -93,6 +95,7 @@ public interface ScoreDocComparator {
 	 * This is used by multisearchers to determine how to collate results from their searchers.
 	 * @return One of the constants in SortField.
 	 * @see SortField
+	 * 排序类型
 	 */
 	int sortType();
 }

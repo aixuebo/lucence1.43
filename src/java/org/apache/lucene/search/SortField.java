@@ -49,7 +49,10 @@ implements Serializable {
   /** Guess type of sort based on field contents.  A regular expression is used
    * to look at the first term indexed for the field and determine if it
    * represents an integer number, a floating point number, or just arbitrary
-   * string characters. */
+   * string characters. 
+   * 基于field的内容来猜测排序方式
+   * 通常看第一个term,如果他是数字类型的,或者是字符串类型的 
+   **/
   public static final int AUTO = 2;
 
   /** Sort using term values as Strings.  Sort values are String and lower
@@ -65,7 +68,9 @@ implements Serializable {
   public static final int FLOAT = 5;
 
   /** Sort using a custom Comparator.  Sort values are any Comparable and
-   * sorting is done according to natural order. */
+   * sorting is done according to natural order. 
+   * 用户自定义排序规则 
+   **/
   public static final int CUSTOM = 9;
 
   // IMPLEMENTATION NOTE: the FieldCache.STRING_INDEX is in the same "namespace"
@@ -81,10 +86,10 @@ implements Serializable {
 
 
   private String field;//属性
-  private int type = AUTO;  // defaults to determining type dynamically
+  private int type = AUTO;  // defaults to determining type dynamically  默认是自动根据term选择排序方式
   private Locale locale;    // defaults to "natural order" (no Locale)
   boolean reverse = false;  // defaults to natural order 倒排还是正序
-  private SortComparatorSource factory;//如何排序
+  private SortComparatorSource factory;//如何排序---如果排序类型是自定义的时候,必须有该属性存在,去设计如何对field排序
 
   /** Creates a sort by terms in the given field where the type of term value
    * is determined dynamically ({@link #AUTO AUTO}).
@@ -217,7 +222,7 @@ implements Serializable {
                 break;
 
       case CUSTOM: buffer.append ("<custom:\"" + field + "\": "
-                                               + factory + ">");
+                                               + factory + ">"); //输出自定义排序的field,以及如何排序
                 break;
 
       default: buffer.append("\"" + field + "\"");

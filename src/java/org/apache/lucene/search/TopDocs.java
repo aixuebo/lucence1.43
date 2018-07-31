@@ -18,7 +18,7 @@ package org.apache.lucene.search;
 
 /** Expert: Returned by low-level search implementations.
  * @see Searcher#search(Query,Filter,int) 
- * 查询的返回值 
+ * 查询的返回值 ---排名分数在前面的若干个doc文档
  **/
 public class TopDocs implements java.io.Serializable {
   /** Expert: The total number of hits for the query.

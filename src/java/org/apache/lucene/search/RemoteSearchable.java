@@ -26,7 +26,9 @@ import java.rmi.server.UnicastRemoteObject;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.index.Term;
 
-/** A remote searchable implementation. */
+/** A remote searchable implementation. 
+ * 本地开放一个服务,远程可以访问到本地的索引结果 
+ **/
 public class RemoteSearchable
   extends UnicastRemoteObject
   implements Searchable {

@@ -27,6 +27,7 @@ import java.io.IOException;
  * behavior is like {@link QueryFilter}.  The purpose is to allow
  * filters to simply filter, and then wrap with this class to add
  * caching, keeping the two concerns decoupled yet composable.
+ * 对filter满足条件的docid集合进行缓存
  */
 public class CachingWrapperFilter extends Filter {
   private Filter filter;
@@ -35,7 +36,7 @@ public class CachingWrapperFilter extends Filter {
    * @todo What about serialization in RemoteSearchable?  Caching won't work.
    *       Should transient be removed?
    */
-  private transient Map cache;
+  private transient Map cache;//key是索引的reader,value是缓存在该索引下 filter过滤的集合
 
   /**
    * @param filter Filter to cache results of

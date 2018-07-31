@@ -25,6 +25,7 @@ import org.apache.lucene.index.Term;
  *
  * <p>Applications usually need only call the inherited {@link #search(Query)}
  * or {@link #search(Query,Filter)} methods.
+ * 一次跨越多个索引的查询方式
  */
 public class MultiSearcher extends Searcher {
   private Searchable[] searchables;

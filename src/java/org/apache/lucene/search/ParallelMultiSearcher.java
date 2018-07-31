@@ -25,8 +25,9 @@ import org.apache.lucene.util.PriorityQueue;
  *
  * <p>Applications usually need only call the inherited {@link #search(Query)}
  * or {@link #search(Query,Filter)} methods.
+ * 实现多线程并发的去搜索不同的索引
  */
-public class ParallelMultiSearcher extends MultiSearcher {
+public class ParallelMultiSearcher extends MultiSearcher { //继承自多搜索
 
   private Searchable[] searchables;
   private int[] starts;
@@ -59,7 +60,7 @@ public class ParallelMultiSearcher extends MultiSearcher {
     int totalHits = 0;
     MultiSearcherThread[] msta =
       new MultiSearcherThread[searchables.length];
-    for (int i = 0; i < searchables.length; i++) { // search each searcher
+    for (int i = 0; i < searchables.length; i++) { // search each searcher 每一个搜索一个线程
       // Assume not too many searchables and cost of creating a thread is by far inferior to a search
       msta[i] =
         new MultiSearcherThread(
@@ -89,6 +90,7 @@ public class ParallelMultiSearcher extends MultiSearcher {
       }
     }
 
+    //组装查询结果
     ScoreDoc[] scoreDocs = new ScoreDoc[hq.size()];
     for (int i = hq.size() - 1; i >= 0; i--) // put docs in array
       scoreDocs[i] = (ScoreDoc) hq.pop();
@@ -192,6 +194,7 @@ public class ParallelMultiSearcher extends MultiSearcher {
 
 /**
  * A thread subclass for searching a single searchable 
+ * 搜索线程
  */
 class MultiSearcherThread extends Thread {
 

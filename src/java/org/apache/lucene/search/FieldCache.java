@@ -39,11 +39,11 @@ public interface FieldCache {
   /** Expert: Stores term text values and document ordering data. */
   public static class StringIndex {
 
-    /** All the term values, in natural order. */
+    /** All the term values, in natural order.每一个term具体的Strig值 */
     public final String[] lookup;
 
     /** For each document, an index into the lookup array. */
-    public final int[] order;
+    public final int[] order;//存储每一个doc所属的term的值在lookup中的序号排名
 
     /** Creates one of these objects */
     public StringIndex (int[] values, String[] lookup) {

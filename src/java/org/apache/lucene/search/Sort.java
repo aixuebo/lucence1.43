@@ -96,6 +96,12 @@ import java.io.Serializable;
  * @author  Tim Jones (Nacimiento Software)
  * @since   lucene 1.4
  * @version $Id: Sort.java,v 1.7 2004/04/05 17:23:38 ehatcher Exp $
+ * 
+ * 比如 new Sort(new SortField("category",  
+                Type.STRING), SortField.FIELD_SCORE, new SortField(  
+                "pubmonth", Type.INT, true))  
+                表示先按照category内容排序,然后按照doc分数排序,然后按照pubmonth排序
+                从而实现了类似order by id ,name,age这样的功能
  */
 public class Sort
 implements Serializable {
@@ -109,7 +115,7 @@ implements Serializable {
 	public static final Sort INDEXORDER = new Sort (SortField.FIELD_DOC);//按照docid排序
 
 	// internal representation of the sort criteria 代表排序标准
-	SortField[] fields;
+	SortField[] fields;//可以排序按照若干个field排序,类似于order by多个字段
 
 
 	/** Sorts by computed relevance.  This is the same sort criteria as
@@ -202,6 +208,7 @@ implements Serializable {
 		this.fields = fields;
 	}
 
+	//输出排序的列集合
   public String toString() {
     StringBuffer buffer = new StringBuffer();
 

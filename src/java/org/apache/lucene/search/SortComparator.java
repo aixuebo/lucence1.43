@@ -21,11 +21,12 @@ import java.io.IOException;
  * @author  Tim Jones
  * @version $Id: SortComparator.java,v 1.2.2.1 2004/09/30 19:20:16 dnaber Exp $
  * @since   1.4
+ * 自定义排序工厂的实现类
  */
 public abstract class SortComparator
 implements SortComparatorSource {
 
-  // inherit javadocs
+  // inherit javadocs 对该field创建一个比较器
   public ScoreDocComparator newComparator (final IndexReader reader, final String fieldname)
   throws IOException {
     final String field = fieldname.intern();
@@ -33,7 +34,7 @@ implements SortComparatorSource {
     return new ScoreDocComparator() {
 
       public int compare (ScoreDoc i, ScoreDoc j) {
-        return cachedValues[i.doc].compareTo (cachedValues[j.doc]);
+        return cachedValues[i.doc].compareTo (cachedValues[j.doc]);//让不同doc文档的内容进行排序
       }
 
       public Comparable sortValue (ScoreDoc i) {
@@ -58,6 +59,7 @@ implements SortComparatorSource {
    * @return An object representing <code>termtext</code> that sorts according to the natural order of <code>termtext</code>.
    * @see Comparable
    * @see ScoreDocComparator
+   * 参数是该field中的一个term,去对该term进行排序
    */
   protected abstract Comparable getComparable (String termtext);
 

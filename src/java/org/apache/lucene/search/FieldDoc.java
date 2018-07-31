@@ -37,6 +37,7 @@ package org.apache.lucene.search;
  * @version $Id: FieldDoc.java,v 1.4 2004/04/22 22:23:14 tjones Exp $
  * @see ScoreDoc
  * @see TopFieldDocs
+ * 查询结果中不仅仅包含文档的id以及分数，还有如果该文档是排序后出现的文档，还要记录每一个排序的结果值,表示可以看到如何排序的
  */
 public class FieldDoc
 extends ScoreDoc {
@@ -48,7 +49,7 @@ extends ScoreDoc {
 	 * @see Sort
 	 * @see Searchable#search(Query,Filter,int,Sort)
 	 */
-	public Comparable[] fields;
+	public Comparable[] fields;//排序规则对应的值集合,比如按照id,age,name排序,则该属性存储的就是三者对应的值,排序的时候会以此循环该值进行比较
 
 	/** Expert: Creates one of these objects with empty sort information. */
 	public FieldDoc (int doc, float score) {

@@ -92,7 +92,7 @@ public class IndexSearcher extends Searcher {
     if (scorer == null)
       return new TopDocs(0, new ScoreDoc[0]);
 
-    final BitSet bits = filter != null ? filter.bits(reader) : null;
+    final BitSet bits = filter != null ? filter.bits(reader) : null;//如果对匹配的文档进一步过滤
     final HitQueue hq = new HitQueue(nDocs);//排序方式
     final int[] totalHits = new int[1];
     scorer.score(new HitCollector() {
