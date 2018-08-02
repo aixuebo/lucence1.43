@@ -28,7 +28,9 @@ public class SpanFirstQuery extends SpanQuery {
   private int end;
 
   /** Construct a SpanFirstQuery matching spans in <code>match</code> whose end
-   * position is less than or equal to <code>end</code>. */
+   * position is less than or equal to <code>end</code>. 
+   * 匹配小于end位置之前的数据 
+   **/
   public SpanFirstQuery(SpanQuery match, int end) {
     this.match = match;
     this.end = end;
@@ -66,6 +68,7 @@ public class SpanFirstQuery extends SpanQuery {
           return false;
         }
 
+        //跳跃到target对应的docid后再进行匹配
         public boolean skipTo(int target) throws IOException {
           if (!spans.skipTo(target))
             return false;

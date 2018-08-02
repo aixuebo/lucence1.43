@@ -25,16 +25,24 @@ import org.apache.lucene.search.Query;
 import org.apache.lucene.search.Weight;
 import org.apache.lucene.search.Searcher;
 
-/** Base class for span-based queries. */
+/** Base class for span-based queries.
+ * span查询的基础类
+ **/
 public abstract class SpanQuery extends Query {
   /** Expert: Returns the matches for this query in an index.  Used internally
-   * to search for spans. */
+   * to search for spans.
+   * 返回一个span范围
+   **/
   public abstract Spans getSpans(IndexReader reader) throws IOException;
 
-  /** Returns the name of the field matched by this query.*/
+  /** Returns the name of the field matched by this query.
+   * 返回匹配该查询的field的name 
+   **/
   public abstract String getField();
 
-  /** Returns a collection of all terms matched by this query.*/
+  /** Returns a collection of all terms matched by this query.
+   * 返回匹配该查询的所有query 
+   **/
   public abstract Collection getTerms();
 
   protected Weight createWeight(Searcher searcher) {

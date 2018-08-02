@@ -45,18 +45,19 @@ class SpanScorer extends Scorer {
     this.value = weight.getValue();
   }
 
+  //判断是否有下一个span跨度
   public boolean next() throws IOException {
     if (firstTime) {
-      more = spans.next();
+      more = spans.next();//是否有下一个匹配的span跨度
       firstTime = false;
     }
 
     if (!more) return false;
 
-    freq = 0.0f;
-    doc = spans.doc();
+    freq = 0.0f;//词频
+    doc = spans.doc();//此时所处的docid
 
-    while (more && doc == spans.doc()) {
+    while (more && doc == spans.doc()) {//说明在同一个doc下
       int matchLength = spans.end() - spans.start();
       freq += getSimilarity().sloppyFreq(matchLength);
       more = spans.next();
@@ -72,6 +73,7 @@ class SpanScorer extends Scorer {
     return raw * Similarity.decodeNorm(norms[doc]); // normalize
   }
 
+  //跳跃到参数的doc下继续计算
   public boolean skipTo(int target) throws IOException {
     more = spans.skipTo(target);
 
