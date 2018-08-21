@@ -22,7 +22,7 @@ import java.io.IOException;
  * Each span represents a range of term positions within a document.  Matches
  * are enumerated in order, by increasing document number, within that by
  * increasing start position and finally by increasing end position. 
- * 一个枚举span匹配的对象,被适用于进行span搜索。
+ * 一个枚举span匹配的对象,被适用于进行span搜索。 
  * 每一个span待办一个term的位置范围
  * 匹配是按照顺序进行枚举的,通过以此增加docid、同一个docid内需要增加开始位置和结束位置来获取一定的span范围
  * 
