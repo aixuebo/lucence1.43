@@ -34,28 +34,29 @@ public class CheckHits {
         Query query,
         String defaultFieldName,
         Searcher searcher,
-        int[] results,
+        int[] results,//预测结果集
         TestCase testCase)
           throws IOException {
     Hits hits = searcher.search(query);
 
-    Set correct = new TreeSet();
+    Set correct = new TreeSet();//预测的结果集
     for (int i = 0; i < results.length; i++) {
       correct.add(new Integer(results[i]));
     }
 
-    Set actual = new TreeSet();
+    Set actual = new TreeSet();//存储查询命中的docid
     for (int i = 0; i < hits.length(); i++) {
-      actual.add(new Integer(hits.id(i)));
+      actual.add(new Integer(hits.id(i)));//查询命中的docid
     }
 
-    testCase.assertEquals(query.toString(defaultFieldName), correct, actual);
+    testCase.assertEquals(query.toString(defaultFieldName), correct, actual);//判断两个集合相同
   }
 
+  //打印最终命中的docid集合
   public static void printDocNrs(Hits hits) throws IOException {
     System.out.print("new int[] {");
     for (int i = 0; i < hits.length(); i++) {
-      System.out.print(hits.id(i));
+      System.out.print(hits.id(i));//docid
       if (i != hits.length()-1)
         System.out.print(", ");
     }

@@ -31,8 +31,8 @@ class NearSpans implements Spans {
   private int slop;                               // from query
   private boolean inOrder;                        // from query
 
-  private SpansCell first;                        // linked list of spans
-  private SpansCell last;                         // sorted by doc only
+  private SpansCell first;                        // linked list of spans 优先队列中的第一个对象
+  private SpansCell last;                         // sorted by doc only 优先队列中的最后一个对象
 
   private int totalLength;                        // sum of current lengths
 
@@ -245,22 +245,26 @@ class NearSpans implements Spans {
     }
   }
 
+  //按照顺序组装成队列---新添加到放到队尾
   private void addToList(SpansCell cell) {
-    if (last != null) {			  // add next to end of list
+    if (last != null) {			  // add next to end of list 新添加的放到队尾即可
       last.next = cell;
-    } else
-      first = cell;
-    last = cell;
-    cell.next = null;
+    } else {//说明是第一次添加,因此first为cell
+    	first = cell;//first就第一次时候赋值
+    }
+    last = cell;//设置最后一个为队尾对象--每次更新最后一个元素即可
+    cell.next = null;//因为刚刚添加元素,还没有next属性,因此要设置为null
   }
 
+  //第一个迁移到最后一个位置
   private void firstToLast() {
-    last.next = first;			  // move first to end of list
-    last = first;
-    first = first.next;
-    last.next = null;
+    last.next = first;			  // move first to end of list  移动第一个到最后一个位置,最后一个位置就是last的下一个---设置一个链表关系
+    last = first;//设置最后一个即是first
+    first = first.next;//第一个就是原来第一个的下一个
+    last.next = null;//此时的next 就是原始第一个的next,因为已经没有意义了,因此清空
   }
 
+  //将优先队列按照顺序组装成链表
   private void queueToList() {
     last = first = null;
     while (queue.top() != null) {
@@ -291,13 +295,14 @@ class NearSpans implements Spans {
     throw new RuntimeException("Unexpected: ordered");
   }
 
+  //将链表中数据 存储到优先队列中
   private void listToQueue() {
     queue.clear(); // rebuild queue
     partialListToQueue();
   }
 
   private void partialListToQueue() {
-    for (SpansCell cell = first; cell != null; cell = cell.next) {
+    for (SpansCell cell = first; cell != null; cell = cell.next) {//从头到尾的遍历即可
       queue.put(cell);                      // add to queue from list
     }
   }

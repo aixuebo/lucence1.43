@@ -62,6 +62,7 @@ public class TestBasics extends TestCase {
     searcher = new IndexSearcher(directory);
   }
   
+  //必须包含70
   public void testTerm() throws Exception {
     Query query = new TermQuery(new Term("field", "seventy"));
     checkHits(query, new int[]
@@ -79,6 +80,7 @@ public class TestBasics extends TestCase {
     checkHits(query, new int[] {});
   }
 
+  //校验该document必须包含77
   public void testPhrase() throws Exception {
     PhraseQuery query = new PhraseQuery();
     query.add(new Term("field", "seventy"));
@@ -87,6 +89,7 @@ public class TestBasics extends TestCase {
       {77, 177, 277, 377, 477, 577, 677, 777, 877, 977});
   }
 
+  //因为没有seventish,所以结果是空
   public void testPhrase2() throws Exception {
     PhraseQuery query = new PhraseQuery();
     query.add(new Term("field", "seventish"));
